@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Careers | HIMS Hospital System</title>
+<style>
+:root{--bg:#07100f;--panel:#1b2422;--panel2:#202c29;--line:#31423e;--text:#edf7f2;--muted:#a9bbb4;--g1:#1bb98f;--g2:#20b7c0;--danger:#ff7b7b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:"Segoe UI",Inter,"Helvetica Neue",Arial,sans-serif;color:var(--text);line-height:1.5;
+background:radial-gradient(circle at top,rgba(18,57,50,.9),rgba(6,18,17,.98) 38%,#020c0d 100%) fixed}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--g2);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 56px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:36px}
+.brand{display:flex;align-items:center;gap:14px}
+.mark{display:grid;place-items:center;width:52px;height:52px;border-radius:14px;background:var(--g1);color:#04231b;font-weight:800;font-size:.74rem;letter-spacing:.02em}
+.brand strong{display:block;font-size:1.3rem;line-height:1.1}
+.brand span{color:var(--muted);font-size:.85rem}
+.back{padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);text-decoration:none;font-weight:700;font-size:.9rem}
+.back:hover{border-color:var(--g1)}
+h1{font-size:2.4rem;line-height:1.1;margin:0 0 10px}
+.lede{color:var(--muted);max-width:52ch;margin:0 0 28px}
+.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;align-items:start}
+.roles{display:grid;gap:12px}
+.role{width:100%;text-align:left;padding:18px 20px;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:inherit;font:inherit;cursor:pointer}
+.role:hover{border-color:#4a635c}
+.role[aria-pressed=true]{border-color:var(--g1);background:linear-gradient(135deg,rgba(27,185,143,.16),rgba(32,183,192,.08))}
+.role h2{margin:0;font-size:1.2rem}
+.role .meta{color:var(--g1);font-size:.85rem;font-weight:700;margin:2px 0 6px}
+.role p{margin:0;color:var(--muted);font-size:.92rem}
+.panel{position:sticky;top:20px;padding:26px;border:1px solid var(--line);border-radius:24px;background:var(--panel)}
+.panel h2{margin:0 0 4px;font-size:1.5rem}
+.panel .sub{margin:0 0 18px;color:var(--muted);font-size:.9rem}
+label.f{display:block;margin-bottom:14px;font-size:.85rem;font-weight:700;color:var(--muted)}
+input[type=text],input[type=email],input[type=tel],textarea{display:block;width:100%;margin-top:6px;padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:var(--text);font:inherit;font-weight:400}
+textarea{resize:vertical;min-height:84px}
+.drop{display:block;margin:6px 0 14px;padding:20px 14px;border:1.5px dashed #4a635c;border-radius:14px;background:var(--panel2);text-align:center;cursor:pointer;color:var(--muted);font-weight:400;font-size:.9rem}
+.drop:hover,.drop.over,.drop:focus-within{border-color:var(--g1)}
+.drop strong{display:block;color:var(--text);font-size:.95rem}
+.drop.has strong{color:var(--g1)}
+.drop input{position:absolute;width:1px;height:1px;opacity:0}
+.err{min-height:1.3em;margin:0 0 10px;color:var(--danger);font-size:.85rem;font-weight:700}
+.send,.again{width:100%;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--g1),var(--g2));color:#04231b;font:inherit;font-weight:800;cursor:pointer}
+.send:disabled{opacity:.6;cursor:wait}
+.again{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.done{text-align:center;padding:14px 0}
+.done h2{font-size:1.5rem}
+.done p{color:var(--muted)}
+.role .qreq{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:.86rem}
+.role .qreq strong{color:var(--text)}
+.role .qreq ul{margin:4px 0 0;padding-left:20px;color:var(--muted);display:grid;gap:2px}
+.quals{margin:0 0 18px;padding:16px 16px 12px;border:1px solid var(--line);border-radius:16px;background:var(--panel2)}
+.quals h3{margin:0;font-size:1rem}
+.quals .qhint{margin:2px 0 10px;color:var(--muted);font-size:.82rem}
+.quals ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.quals li label{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:.9rem}
+.quals li label:hover{background:rgba(255,255,255,.04)}
+.quals input[type=checkbox]{flex:none;width:18px;height:18px;margin-top:2px;accent-color:var(--g1);cursor:pointer}
+.quals li label:has(input:checked) span{color:var(--g1)}
+.qresult{margin:10px 2px 0;font-size:.85rem;font-weight:700;color:var(--muted)}
+.qresult.all{color:var(--g1)}
+.qresult.some{color:#f2c46d}
+.boards{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 16px;font-size:.82rem;color:var(--muted)}
+.board{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);text-decoration:none;font-weight:700;color:var(--text)}
+.board:hover{border-color:var(--g1)}
+.board .dot{width:18px;height:18px;border-radius:5px;display:grid;place-items:center;font-size:.68rem;font-weight:800;color:#fff}
+.board.li .dot{background:#0a66c2}
+.board.js .dot{background:#e60278}
+.via{margin:0 0 14px;padding:8px 12px;border-radius:12px;background:rgba(27,185,143,.1);color:var(--g1);font-size:.82rem;font-weight:700}
+@media(max-width:820px){.grid{grid-template-columns:1fr}.panel{position:static}h1{font-size:1.9rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><div class="mark">HIMS</div><div><strong>HIMS</strong><span>Hospital System</span></div></div>
+    <a class="back" href="index.html">Back to login</a>
+  </header>
+
+  <h1>Careers at HIMS Hospital</h1>
+  <p class="lede">Choose a position, check its qualifications, attach your resume, and the HR team will see your application right away.</p>
+
+  <div class="grid">
+    <div class="roles" id="roles" role="group" aria-label="Open positions"></div>
+
+    <section class="panel" aria-live="polite">
+      <form id="form" novalidate>
+        <h2 id="formTitle">Apply</h2>
+        <p class="sub">Fields marked with * are required.</p>
+        <p class="via" id="via" hidden></p>
+        <div class="boards" id="boards" hidden></div>
+        <div class="quals" id="quals" hidden>
+          <h3>Qualifications Required:</h3>
+          <p class="qhint">Check if you qualify: tick the ones you meet.</p>
+          <ul id="qualList"></ul>
+          <p class="qresult" id="qResult" aria-live="polite"></p>
+        </div>
+        <label class="f">Full name *<input type="text" id="name" autocomplete="name"></label>
+        <label class="f">Email *<input type="email" id="email" autocomplete="email"></label>
+        <label class="f">Phone<input type="tel" id="phone" autocomplete="tel"></label>
+        <label class="f" for="resume">Resume *</label>
+        <label class="drop" id="drop" for="resume">
+          <strong id="dropMain">Choose a file or drop it here</strong>
+          <span id="dropSub">PDF, DOC, DOCX, JPG or PNG. Up to 5 MB.</span>
+          <input type="file" id="resume" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+        </label>
+        <label class="f">Message to HR<textarea id="note" placeholder="Optional: licenses, availability, anything we should know"></textarea></label>
+        <p class="err" id="err" role="alert"></p>
+        <button class="send" id="send" type="submit">Send application</button>
+      </form>
+      <div class="done" id="done" hidden>
+        <h2>Application sent</h2>
+        <p id="doneText"></p>
+        <button class="again" id="again" type="button">Apply for another position</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const API = "backend/api.php";
+const MAX = 5 * 1024 * 1024, OK = /\.(pdf|docx?|jpe?g|png)$/i;
+const $ = (id) => document.getElementById(id);
+// Where the applicant came from: links posted on LinkedIn/JobStreet/Facebook end in ?source=linkedin etc.
+// Kept for this visit so it survives switching between jobs.
+const SOURCES = { linkedin: "LinkedIn", jobstreet: "JobStreet", facebook: "Facebook" };
+const SOURCE = (() => {
+  const p = new URLSearchParams(location.search), v = String(p.get("source") || p.get("utm_source") || "").toLowerCase();
+  try { if (SOURCES[v]) sessionStorage.setItem("himsApplySource", v); return sessionStorage.getItem("himsApplySource") || ""; }
+  catch (e) { return SOURCES[v] ? v : ""; }
+})();
+let roles = [], role = null;
+
+function setRoles(msg) { $("roles").innerHTML = `<p class="lede">${msg}</p>`; $("form").hidden = true; }
+
+async function loadRoles() {
+  try {
+    const res = await fetch(API + "?resource=public-vacancies");
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Could not load positions.");
+    roles = data.records;
+  } catch (e) {
+    return setRoles("We could not load the open positions right now. Please try again later.");
+  }
+  if (!roles.length) return setRoles("There are no open positions at the moment. Please check back soon.");
+  const want = new URLSearchParams(location.search).get("vacancy");
+  role = roles.find((r) => String(r.id) === want) || roles[0]; $("form").hidden = false; renderRoles();
+}
+
+function renderRoles() {
+  $("roles").innerHTML = "";
+  roles.forEach((r) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "role"; b.setAttribute("aria-pressed", r.id === role.id);
+    b.innerHTML = `<h2></h2><div class="meta"></div><p></p>`;
+    b.children[0].textContent = r.title;
+    b.children[1].textContent = [r.department, r.type, r.slots + (Number(r.slots) === 1 ? " slot" : " slots"), r.deadline ? "Apply by " + r.deadline : ""].filter(Boolean).join(" \u2022 ");
+    b.children[2].textContent = r.description || "";
+    const ql = quals(r);
+    if (ql.length) {
+      const box = document.createElement("div"); box.className = "qreq";
+      box.innerHTML = "<strong>Qualifications Required:</strong><ul></ul>";
+      ql.forEach((q) => { const li = document.createElement("li"); li.textContent = q; box.querySelector("ul").appendChild(li); });
+      b.appendChild(box);
+    }
+    b.onclick = () => { role = r; $("form").hidden = false; $("done").hidden = true; renderRoles(); };
+    $("roles").appendChild(b);
+  });
+  $("formTitle").textContent = "Apply for " + role.title;
+  renderQuals();
+  renderBoards();
+}
+
+// "Also posted on" LinkedIn / JobStreet, and a note when the visitor came from one of them.
+function safeLink(u, hosts) {
+  try { const x = new URL(u); return x.protocol === "https:" && hosts.some((h) => x.hostname === h || x.hostname.endsWith("." + h)) ? x.href : ""; }
+  catch (e) { return ""; }
+}
+function renderBoards() {
+  const links = [
+    ["li", "in", "LinkedIn", safeLink(role.linkedinUrl, ["linkedin.com"])],
+    ["js", "J", "JobStreet", safeLink(role.jobstreetUrl, ["jobstreet.com", "jobstreet.com.ph"])],
+  ].filter((l) => l[3]);
+  const box = $("boards");
+  box.hidden = !links.length;
+  box.innerHTML = links.length ? "<span>Also posted on:</span>" : "";
+  links.forEach(([cls, mark, name, url]) => {
+    const a = document.createElement("a");
+    a.className = "board " + cls; a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
+    a.innerHTML = `<span class="dot">${mark}</span>`; a.append(name);
+    box.appendChild(a);
+  });
+  $("via").hidden = !SOURCE;
+  if (SOURCE) $("via").textContent = `Welcome from ${SOURCES[SOURCE]}! Your application will show HR that you found us there.`;
+}
+
+// Qualifications: one per line from HR. The applicant ticks what they meet (only a guide, it is not sent).
+function quals(r) { return String((r && r.qualifications) || "").split(/\n+/).map((q) => q.trim()).filter(Boolean); }
+function renderQuals() {
+  const list = quals(role);
+  $("quals").hidden = !list.length;
+  $("qualList").innerHTML = "";
+  list.forEach((q) => {
+    const li = document.createElement("li");
+    li.innerHTML = '<label><input type="checkbox"><span></span></label>';
+    li.querySelector("span").textContent = q;
+    li.querySelector("input").onchange = qualResult;
+    $("qualList").appendChild(li);
+  });
+  qualResult();
+}
+function qualResult() {
+  const boxes = [...$("qualList").querySelectorAll("input")], met = boxes.filter((b) => b.checked).length, el = $("qResult");
+  el.className = "qresult";
+  if (!met) { el.textContent = ""; return; }
+  if (met === boxes.length) { el.classList.add("all"); el.textContent = "You meet all the qualifications. Go ahead and apply!"; return; }
+  el.classList.add("some");
+  el.textContent = `You meet ${met} of ${boxes.length}. You can still apply, and HR will review your resume.`;
+}
+
+function showFile(f) {
+  $("drop").classList.toggle("has", !!f);
+  $("dropMain").textContent = f ? f.name : "Choose a file or drop it here";
+  $("dropSub").textContent = f ? (f.size / 1024 / 1024).toFixed(2) + " MB. Click to change." : "PDF, DOC, DOCX, JPG or PNG. Up to 5 MB.";
+}
+$("resume").onchange = (e) => showFile(e.target.files[0]);
+["dragenter", "dragover"].forEach((t) => $("drop").addEventListener(t, (e) => { e.preventDefault(); $("drop").classList.add("over"); }));
+["dragleave", "drop"].forEach((t) => $("drop").addEventListener(t, (e) => { e.preventDefault(); $("drop").classList.remove("over"); }));
+$("drop").addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) { $("resume").files = e.dataTransfer.files; showFile(e.dataTransfer.files[0]); } });
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = $("name").value.trim(), email = $("email").value.trim(), file = $("resume").files[0];
+  const fail = (m) => { $("err").textContent = m; };
+  if (!name) return fail("Enter your full name.");
+  if (!/^\S+@\S+\.\S+$/.test(email)) return fail("Enter a valid email address.");
+  if (!file) return fail("Attach your resume.");
+  if (!OK.test(file.name)) return fail("Resume must be a PDF, DOC, DOCX, JPG or PNG file.");
+  if (file.size > MAX) return fail("Resume is larger than 5 MB. Attach a smaller file.");
+  fail(""); $("send").disabled = true; $("send").textContent = "Sending...";
+  try {
+    const fd = new FormData();
+    fd.append("vacancy_id", role.id); fd.append("name", name); fd.append("email", email);
+    fd.append("phone", $("phone").value.trim()); fd.append("note", $("note").value.trim()); fd.append("resume", file);
+    if (SOURCE) fd.append("source", SOURCE);
+    const res = await fetch(API + "?resource=apply", { method: "POST", body: fd });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Could not send your application. Please try again.");
+    $("doneText").textContent = `We received your resume for ${role.title}. HR will contact you at ${email}.`;
+    $("form").hidden = true; $("done").hidden = false; $("form").reset(); showFile(null);
+  } catch (err) {
+    fail(err.message);
+  }
+  $("send").disabled = false; $("send").textContent = "Send application";
+});
+$("again").onclick = () => { $("form").hidden = false; $("done").hidden = true; $("name").focus(); };
+loadRoles();
+</script>
+</body>
+</html>

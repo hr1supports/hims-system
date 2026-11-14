@@ -1,0 +1,246 @@
+==========================================================================
+ HIMS (HR1) - SETUP GUIDE AND WHAT CHANGED          Updated: November 4, 2026
+ Hospital HR system - now running on Laravel 12
+==========================================================================
+
+CONTENTS
+  Part 1. What changed (summary)
+  Part 2. What to download (one time)
+  Part 3. Set up HIMS on a computer, step by step
+  Part 4. Connect HR2 / HR3 / HR4 (integration)
+  Part 5. Daily use: start, check the database, make changes
+  Part 6. Problems and fixes
+
+
+--------------------------------------------------------------------------
+PART 1. WHAT CHANGED
+--------------------------------------------------------------------------
+1. HIMS now runs on LARAVEL 12 (folder: hims-laravel).
+   - The pages look and work the same. They are in hims-laravel\public\.
+   - The HIMS backend (login + email code, accounts, hiring, timekeeping,
+     claims, File Exchange) runs inside Laravel: app\Legacy\backend\.
+   - NEW: a Laravel REST API for HR2 / HR3 / HR4 at /api/v1
+     (routes\api.php, app\Http\Controllers\Api\, app\Models\).
+   - Same database as before (hr3_system). No data was moved or changed.
+
+2. INTEGRATION with HR2 / HR3 / HR4
+   - File Exchange page: send files to and receive files from HR2/HR3/HR4.
+   - HR Requests page: real requests from HR2/HR3/HR4. An HR Officer
+     approves/rejects with a remark; the other system reads the decision.
+   - Each group has ONE key (Super Admin > File Exchange > Connections).
+   - HR3 hire orders use the same key and become Pending vacancies.
+
+3. CLAIMS and ESS REQUESTS are saved in the database (table shared_records),
+   so every computer sees the same list. Receipts are stored on the server.
+
+4. ROLES: HR2 and HR4 removed as login roles. Time Attendance page removed
+   from HR Staff.
+
+5. DESIGN: Claims, Leave, Overtime and Search pages redesigned; calmer
+   buttons; phone menu; bell icon; green scrollbars that hide when unused;
+   dark mode fixes.
+
+6. DATABASE FILES ADDED: 024_file_exchange.sql (File Exchange, HR Requests,
+   keys), 025_shared_records.sql (claims and ESS requests) and
+   026_partner_push.sql (HIMS sends data to HR2, HR3, HR4, Administrators).
+
+7. DATA HIMS SENDS (File Exchange > "Data HIMS sends" tab):
+   HR2  employee information after onboarding + new employee accounts
+   HR3  trainee accounts + applicant information after onboarding
+   HR4  decided claims, reimbursements, monthly payroll inputs
+   Administrators  hired applicants
+   Each group gives us the address of their receiving API (and a key if
+   they use one). The Super Admin saves it there, clicks "Send a test",
+   then "Send all existing records" once. Field list for the other
+   groups: HIMS-LARAVEL-README.md, section "Data HIMS sends".
+
+
+--------------------------------------------------------------------------
+PART 2. WHAT TO DOWNLOAD (ONE TIME PER COMPUTER)
+--------------------------------------------------------------------------
+1. XAMPP (PHP 8.2 or newer + MySQL)      https://www.apachefriends.org
+   Install to C:\xampp
+2. MySQL Workbench (optional, to view the database)
+   https://dev.mysql.com/downloads/workbench/
+3. Composer (Laravel's installer)        https://getcomposer.org/download/
+   Run Composer-Setup.exe. When it asks for PHP choose C:\xampp\php\php.exe
+4. VS Code (to edit code)                https://code.visualstudio.com
+
+Turn on 2 PHP extensions:
+   Open C:\xampp\php\php.ini in Notepad. Search for each line below.
+   If it starts with ; delete the ; then save.
+       extension=zip
+       extension=fileinfo
+
+After installing Composer, CLOSE and REOPEN VS Code / the terminal.
+Check:   composer --version     (should print "Composer version 2.x")
+
+
+--------------------------------------------------------------------------
+PART 3. SET UP HIMS ON A COMPUTER, STEP BY STEP
+--------------------------------------------------------------------------
+STEP 1 - Get the project folder
+   Copy the hims-laravel folder to the computer, for example to
+   Documents\hims-laravel.
+   (When sending it, leave out: vendor\ , .env , storage\app\uploads\ .
+    They are recreated on each computer.)
+
+STEP 2 - Install Laravel's packages
+   Open a terminal in the folder and run:
+       cd "$HOME\Documents\hims-laravel"
+       composer install
+   (If the folder is on OneDrive the path is $HOME\OneDrive\Documents\...)
+
+STEP 3 - Create the settings file
+       copy .env.example .env
+       php artisan key:generate
+   Open .env in VS Code and set:
+       DB_CONNECTION=mysql
+       DB_HOST=127.0.0.1
+       DB_PORT=3306
+       DB_DATABASE=hr3_system
+       DB_USERNAME=hr3_app
+       DB_PASSWORD=(the hr3_app password)
+       SESSION_DRIVER=file
+       CACHE_STORE=file
+       QUEUE_CONNECTION=sync
+   Save (Ctrl+S).
+
+STEP 4 - Start MySQL
+   XAMPP Control Panel > MySQL > Start  (or the MySQL80 Windows service).
+   Use only ONE MySQL at a time (both use port 3306).
+
+STEP 5 - The database
+   A) The computer ALREADY has the hr3_system database with HIMS tables:
+      - Run database\sql\024_file_exchange.sql, 025_shared_records.sql
+        and 026_partner_push.sql once if they were never run, as root
+        (MySQL Workbench: File > Open SQL Script, add "USE hr3_system;" at the top, click the lightning bolt).
+      - Skip "php artisan migrate".
+   B) BRAND-NEW computer with NO HIMS database:
+      1. In MySQL Workbench run:   CREATE DATABASE hr3_system;
+      2. In .env temporarily set DB_USERNAME=root and root's password.
+      3. Run:   php artisan migrate
+         (builds every HIMS table and the starting admin accounts from
+          database\sql\hostforge-import.sql, then 013 to 025)
+      4. Create the app user in MySQL Workbench (choose a password):
+           CREATE USER IF NOT EXISTS 'hr3_app'@'localhost' IDENTIFIED BY 'yourpassword';
+           CREATE USER IF NOT EXISTS 'hr3_app'@'127.0.0.1' IDENTIFIED BY 'yourpassword';
+           GRANT SELECT, INSERT, UPDATE, DELETE ON hr3_system.* TO 'hr3_app'@'localhost';
+           GRANT SELECT, INSERT, UPDATE, DELETE ON hr3_system.* TO 'hr3_app'@'127.0.0.1';
+           FLUSH PRIVILEGES;
+      5. Put DB_USERNAME=hr3_app and that password back in .env.
+      6. Log in with a seeded admin account and CHANGE its password.
+
+STEP 6 - Run HIMS
+       php artisan serve --port=8000
+   Open http://127.0.0.1:8000/ in Chrome. Keep the terminal open.
+   Stop it with Ctrl+C.
+
+STEP 7 - Check it works
+   - The login page shows the open jobs.
+   - http://127.0.0.1:8000/api/v1/vacancies shows the jobs as JSON.
+   - http://127.0.0.1:8000/up shows Laravel's "Application up" page.
+
+
+--------------------------------------------------------------------------
+PART 4. CONNECT HR2 / HR3 / HR4
+--------------------------------------------------------------------------
+1. Log in as SUPER ADMIN > File Exchange > Connections.
+2. Click "Create key" for HR2, HR3 and HR4. Copy each key (shown once)
+   and send it privately to that group.
+3. Send them HIMS-LARAVEL-README.md (in the hims-laravel folder). It lists
+   every endpoint with a Laravel example.
+4. They must be able to reach HIMS: 127.0.0.1 works only on the same PC.
+   Use the HostForge deployment (Dockerfile in the folder) or a public link.
+
+API summary  (base: http://<HIMS address>/api/v1)
+   Header:  Authorization: Bearer <key>    (or X-Integration-Key: <key>)
+   GET  /vacancies                 open jobs (no key needed)
+   GET  /ping                      test the key
+   GET  /files                     files HIMS sent you (?status=all)
+   GET  /files/{id}                download one (marks it Picked up)
+   POST /files                     send a file (file, subject, note, sender, reference)
+   GET  /requests                  your requests (?status=Pending|Approved|Rejected)
+   GET  /requests/{reference}      one request + decision + remark
+   POST /requests                  send a request (reference, type, title, ...)
+   POST /hire-orders               HR3 only - send a hire order
+   GET  /hire-orders/{reference}   HR3 only - status of a hire order
+
+Laravel example for the other groups:
+   $hims = Http::withToken(env('HIMS_KEY'))->acceptJson()
+               ->baseUrl(env('HIMS_URL').'/api/v1');
+   $hims->get('/ping')->json();
+   $hims->post('/requests', ['reference'=>'OT-0012','type'=>'Overtime',
+                             'title'=>'Overtime for Oct 30','hours'=>3])->json();
+
+Inside HIMS:
+   - Files they send appear in File Exchange > Inbox.
+   - Requests appear in HR Requests (and on the HR Officer Approvals page).
+   - HR3 hire orders appear in Vacancies as Pending; an HR Officer publishes.
+
+
+--------------------------------------------------------------------------
+PART 5. DAILY USE
+--------------------------------------------------------------------------
+Start HIMS:
+       cd "$HOME\OneDrive\Documents\hims-laravel"
+       php artisan serve --port=8000
+   Do NOT also run the old "START HIMS.bat" (both use port 8000).
+
+Check the database:
+   - MySQL Workbench: double-click hr3_system so it is bold, then browse
+     tables or run queries.
+   - Or in a second terminal in the hims-laravel folder:
+       php artisan db:show
+       php artisan db:table vacancies
+       php artisan tinker      then e.g.  App\Models\Vacancy::where('status','Open')->get()
+
+Make changes:
+   Pages / design ............. public\  (index.html, style.css, *.js)
+   Partner API ................ routes\api.php, app\Http\Controllers\Api\
+   HIMS backend ............... app\Legacy\backend\
+   Settings ................... .env
+   New table or column ........ php artisan make:migration <name>
+                                edit it in database\migrations\
+                                php artisan migrate  (with DB_USERNAME=root)
+   After changing .js/.css press Ctrl+F5 in the browser.
+
+
+--------------------------------------------------------------------------
+PART 6. PROBLEMS AND FIXES
+--------------------------------------------------------------------------
+"composer is not recognized"
+   Install Composer, then close and reopen VS Code / the terminal.
+
+Page shows "Not found" for /api/v1 or /up
+   The OLD HIMS server is still running on port 8000. Run:
+       taskkill /F /IM php.exe
+   then start again with php artisan serve --port=8000
+
+"Access denied for user 'hr3_app'" / "MySQL connection failed"
+   DB_PASSWORD in .env is wrong. Fix it (use quotes if it has spaces or #)
+   or reset it in MySQL Workbench:
+       ALTER USER 'hr3_app'@'localhost' IDENTIFIED BY 'NewPassword';
+       ALTER USER 'hr3_app'@'127.0.0.1' IDENTIFIED BY 'NewPassword';
+       FLUSH PRIVILEGES;
+
+"No database selected" in MySQL Workbench
+   Double-click hr3_system on the left (it turns bold) or add
+   USE hr3_system;  at the top of the script.
+
+No jobs on the login page
+   Only vacancies with status Open, not archived and deadline not passed
+   are shown. HR3 hire orders must be published by an HR Officer first.
+
+Code text shows on the login page
+   Do not use VS Code "Go Live" (port 5500). Use http://127.0.0.1:8000/
+
+"Run database/025_shared_records.sql" message
+   Run that file once on the database (Part 3, Step 5A).
+
+"Run database/sql/026_partner_push.sql" on Data HIMS sends
+   Same: run that file once as root (Part 3, Step 5A).
+
+php artisan migrate fails with "command denied"
+   hr3_app cannot create tables. Use DB_USERNAME=root for migrate only.
+==========================================================================

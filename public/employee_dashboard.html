@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Self-Service | HIMS</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="hims-shared-sync.js"></script>
+  <script>
+// HIMS dashboard helpers: bar graphs, line graphs, KPI tiles, scorecards and insight lists.
+// Plain HTML/SVG with no external library, so charts work offline on the XAMPP demo machine.
+(function () {
+  const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const num = (n) => Number(n || 0).toLocaleString();
+
+  function empty(el, message) {
+    el.innerHTML = `<p class="hx-empty">${esc(message || "No data yet.")}</p>`;
+  }
+
+  // Horizontal bar graph. rows: [{ label, value, max?, text?, tone? }]
+  // tone: "main" | "good" | "watch" | "bad" | "muted"
+  function bars(el, rows, opt = {}) {
+    if (!el) return;
+    const list = (rows || []).filter((r) => r && r.label != null);
+    const shared = opt.max || Math.max(0, ...list.map((r) => Number(r.value) || 0));
+    const hasPerRowMax = list.some((r) => r.max);
+    if (!list.length || (!hasPerRowMax && shared <= 0)) return empty(el, opt.empty);
+    const format = opt.format || num;
+    el.innerHTML = `<div class="hx-bars">${list.map((r) => {
+      const v = Number(r.value) || 0;
+      const max = Number(r.max) || shared || 1;
+      const pct = v <= 0 ? 0 : Math.max(2, Math.min(100, (v / max) * 100));
+      const text = r.text != null ? r.text : format(v);
+      return `<div class="hx-bar-row" title="${esc(r.label)}: ${esc(text)}">
+        <span class="hx-bar-label">${esc(r.label)}</span>
+        <span class="hx-bar-track"><i class="hx-fill hx-tone-${esc(r.tone || "main")}" style="width:${pct.toFixed(1)}%"></i></span>
+        <span class="hx-bar-value">${esc(text)}</span>
+      </div>`;
+    }).join("")}</div>`;
+  }
+
+  // Line graph with a shaded area. points: [{ label, value }]
+  function line(el, points, opt = {}) {
+    if (!el) return;
+    const list = points || [];
+    const max = Math.max(0, ...list.map((p) => Number(p.value) || 0));
+    if (list.length < 2 || max <= 0) return empty(el, opt.empty);
+    const top = opt.max || Math.ceil(max * 1.15) || 1;
+    const W = 600, H = 180;
+    const x = (i) => (i / (list.length - 1)) * W;
+    const y = (v) => H - (Math.max(0, v) / top) * H;
+    const coords = list.map((p, i) => `${x(i).toFixed(1)},${y(Number(p.value) || 0).toFixed(1)}`);
+    const format = opt.format || num;
+    const showEvery = list.length > 8 ? Math.ceil(list.length / 6) : 1;
+    el.innerHTML = `<div class="hx-line">
+      <div class="hx-line-scale"><span>${esc(format(top))}</span><span>${esc(format(top / 2))}</span><span>0</span></div>
+      <div class="hx-line-plot">
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(opt.label || "Trend")}">
+          <line x1="0" y1="${H / 2}" x2="${W}" y2="${H / 2}" class="hx-grid-line"/>
+          <line x1="0" y1="${H - 0.5}" x2="${W}" y2="${H - 0.5}" class="hx-grid-line"/>
+          <polygon points="0,${H} ${coords.join(" ")} ${W},${H}" class="hx-area"/>
+          <polyline points="${coords.join(" ")}" class="hx-stroke"/>
+        </svg>
+        <div class="hx-line-hits">${list.map((p) => `<span title="${esc(p.label)}: ${esc(format(p.value))}"><i style="bottom:${((Math.max(0, Number(p.value) || 0) / top) * 100).toFixed(1)}%"></i></span>`).join("")}</div>
+        <div class="hx-line-labels">${list.map((p, i) => `<span>${i % showEvery === 0 || i === list.length - 1 ? esc(p.label) : ""}</span>`).join("")}</div>
+      </div>
+    </div>`;
+  }
+
+  // Stacked column chart. points: [{ label, values: [a, b] }], series: [{ name, tone }]
+  function columns(el, points, series, opt = {}) {
+    if (!el) return;
+    const totals = (points || []).map((p) => p.values.reduce((t, v) => t + (Number(v) || 0), 0));
+    const max = Math.max(0, ...totals);
+    if (!points || !points.length || max <= 0) return empty(el, opt.empty);
+    const top = Math.ceil(max * 1.1) || 1;
+    const showEvery = points.length > 10 ? 2 : 1;
+    el.innerHTML = `<div class="hx-cols-legend">${series.map((s) => `<span><i class="hx-fill hx-tone-${esc(s.tone)}"></i>${esc(s.name)}</span>`).join("")}</div>
+      <div class="hx-cols" style="--n:${points.length}">
+        ${points.map((p, i) => `<div class="hx-col" title="${esc(p.label)}: ${series.map((s, k) => `${s.name} ${num(p.values[k])}`).join(", ")}">
+          <div class="hx-col-stack">${p.values.map((v, k) => (Number(v) > 0 ? `<i class="hx-fill hx-tone-${esc(series[k].tone)}" style="height:${((Number(v) / top) * 100).toFixed(1)}%"></i>` : "")).join("")}</div>
+          <span class="hx-col-label">${i % showEvery === 0 || i === points.length - 1 ? esc(p.label) : ""}</span>
+        </div>`).join("")}
+      </div>`;
+  }
+
+  // KPI tiles. items: [{ label, value, sub?, tone? }]
+  function kpis(el, items) {
+    if (!el) return;
+    el.innerHTML = items.map((k) => `<article class="hx-kpi hx-kpi-${esc(k.tone || "main")}">
+      <span>${esc(k.label)}</span><strong>${esc(k.value)}</strong>${k.sub ? `<small>${esc(k.sub)}</small>` : ""}
+    </article>`).join("");
+  }
+
+  // Compare an actual value with a target. Returns "good" | "watch" | "bad".
+  // higher = true when a bigger number is better. margin = how far off still counts as "watch".
+  function grade(actual, target, higher = true, margin = 0.15) {
+    if (actual == null || Number.isNaN(Number(actual))) return "na";
+    const a = Number(actual), t = Number(target);
+    if (higher ? a >= t : a <= t) return "good";
+    const slack = Math.abs(t) * margin || margin;
+    return (higher ? a >= t - slack : a <= t + slack) ? "watch" : "bad";
+  }
+  const STATUS_TEXT = { good: "On track", watch: "Needs attention", bad: "Off track", na: "No data" };
+
+  // Scorecard table. rows: [{ metric, actual, target, status, note? }]
+  function scorecard(el, rows, opt = {}) {
+    if (!el) return;
+    if (!rows.length) return empty(el, opt.empty);
+    const counts = rows.reduce((c, r) => ((c[r.status] = (c[r.status] || 0) + 1), c), {});
+    const scored = rows.filter((r) => r.status !== "na");
+    const score = scored.length ? Math.round((scored.reduce((t, r) => t + (r.status === "good" ? 1 : r.status === "watch" ? 0.5 : 0), 0) / scored.length) * 100) : null;
+    el.innerHTML = `<div class="hx-score-summary">
+        <div class="hx-score-total"><strong>${score == null ? "--" : score + "%"}</strong><span>Overall score</span></div>
+        <div class="hx-score-counts">
+          <span class="hx-pill hx-pill-good">${counts.good || 0} on track</span>
+          <span class="hx-pill hx-pill-watch">${counts.watch || 0} need attention</span>
+          <span class="hx-pill hx-pill-bad">${counts.bad || 0} off track</span>
+        </div>
+      </div>
+      <div class="hx-table-wrap"><table class="hx-score ${esc(opt.tableClass || "")}">
+        <thead><tr><th>Metric</th><th>Actual</th><th>Target</th><th>Status</th></tr></thead>
+        <tbody>${rows.map((r) => `<tr>
+          <td><strong>${esc(r.metric)}</strong>${r.note ? `<small>${esc(r.note)}</small>` : ""}</td>
+          <td>${esc(r.actual)}</td><td>${esc(r.target)}</td>
+          <td><span class="hx-pill hx-pill-${esc(r.status)}">${esc(STATUS_TEXT[r.status] || r.status)}</span></td>
+        </tr>`).join("")}</tbody>
+      </table></div>`;
+  }
+
+  // Insight list. items: strings or { text, tone }
+  function insights(el, items) {
+    if (!el) return;
+    const list = (items || []).filter(Boolean);
+    if (!list.length) return empty(el, "Not enough data for insights yet.");
+    el.innerHTML = `<ul class="hx-insights">${list.map((i) => {
+      const item = typeof i === "string" ? { text: i } : i;
+      return `<li class="hx-insight-${esc(item.tone || "main")}">${esc(item.text)}</li>`;
+    }).join("")}</ul>`;
+  }
+
+  // Helpers for dates and grouping
+  function parseDate(value) {
+    if (!value) return null;
+    if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+    const text = String(value).trim();
+    const iso = /^\d{4}-\d{2}-\d{2}( |T|$)/.test(text) ? text.replace(" ", "T") : text;
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  function countBy(list, key) {
+    return list.reduce((acc, item) => {
+      const k = (typeof key === "function" ? key(item) : item[key]) || "Unspecified";
+      acc[k] = (acc[k] || 0) + 1;
+      return acc;
+    }, {});
+  }
+  function weeklySeries(dates, weeks = 8, now = new Date()) {
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - start.getDay() - (weeks - 1) * 7); // Sunday, `weeks` weeks back
+    const buckets = Array.from({ length: weeks }, (_, i) => {
+      const from = new Date(start); from.setDate(start.getDate() + i * 7);
+      return { from, value: 0, label: from.toLocaleDateString(undefined, { month: "short", day: "numeric" }) };
+    });
+    dates.forEach((d) => {
+      if (!d) return;
+      const idx = Math.floor((d - start) / (7 * 864e5));
+      if (idx >= 0 && idx < weeks) buckets[idx].value += 1;
+    });
+    return buckets;
+  }
+  const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 100) : null);
+
+  window.HimsCharts = { bars, line, columns, kpis, scorecard, insights, grade, parseDate, countBy, weeklySeries, pct, esc, num };
+})();
+
+</script>
+  <script>
+// Password-protected downloads.
+// Before any report or record is downloaded, the signed-in user must re-enter their account password.
+// The password is checked by the server (the same check as signing in), never stored in the browser.
+(function () {
+  const API = location.port === "5500" ? `${location.protocol}//${location.hostname}:8000/backend/api.php` : "backend/api.php";
+  const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let pending = null;
+
+  function currentEmail() {
+    if (window.HIMS_SIGNED_IN_EMAIL) return window.HIMS_SIGNED_IN_EMAIL; // employee portal
+    try {
+      const u = JSON.parse(localStorage.getItem("currentUser") || "null");
+      if (u && u.email) return u.email;
+    } catch (e) { /* ignore */ }
+    return "";
+  }
+
+  function buildDialog() {
+    if (document.getElementById("dlLock")) return;
+    const wrap = document.createElement("div");
+    wrap.id = "dlLock";
+    wrap.className = "modal-backdrop";
+    wrap.hidden = true;
+    wrap.innerHTML = `
+      <section class="modal-panel dl-lock-panel" role="dialog" aria-modal="true" aria-labelledby="dlLockTitle">
+        <div class="modal-header">
+          <div>
+            <span class="modal-eyebrow">Protected download</span>
+            <h2 id="dlLockTitle">Enter your password</h2>
+            <p class="modal-supporting-text" id="dlLockText"></p>
+          </div>
+          <button class="modal-close" type="button" aria-label="Cancel download" data-dl-cancel>&times;</button>
+        </div>
+        <form id="dlLockForm" class="support-form" autocomplete="off">
+          <label for="dlLockPassword">Account password</label>
+          <input id="dlLockPassword" type="password" autocomplete="current-password" required>
+          <p id="dlLockError" class="login-message" role="alert" aria-live="polite"></p>
+          <div class="profile-actions">
+            <button type="submit" id="dlLockSubmit">Download</button>
+            <button type="button" class="secondary-action" data-dl-cancel>Cancel</button>
+          </div>
+        </form>
+      </section>`;
+    document.body.appendChild(wrap);
+    wrap.querySelectorAll("[data-dl-cancel]").forEach((b) => b.addEventListener("click", () => finish(false)));
+    wrap.addEventListener("click", (e) => { if (e.target === wrap) finish(false); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !wrap.hidden) finish(false); });
+    document.getElementById("dlLockForm").addEventListener("submit", onSubmit);
+  }
+
+  function finish(ok) {
+    const box = document.getElementById("dlLock");
+    if (box) box.hidden = true;
+    document.body.classList.remove("modal-open");
+    const p = pending; pending = null;
+    if (p) p(ok);
+  }
+
+  async function onSubmit(event) {
+    event.preventDefault();
+    const input = document.getElementById("dlLockPassword");
+    const error = document.getElementById("dlLockError");
+    const button = document.getElementById("dlLockSubmit");
+    const email = currentEmail();
+    if (!input.value) return;
+    if (!email) { error.textContent = "Your session has ended. Sign in again."; return; }
+    button.disabled = true; button.textContent = "Checking...";
+    error.textContent = "";
+    try {
+      const res = await fetch(`${API}?resource=login`, {
+        method: "POST",
+        credentials: API.startsWith("http") ? "include" : "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: input.value }),
+      });
+      const data = await res.json().catch(() => ({}));
+      const ok = res.ok && data.user && String(data.user.email || "").toLowerCase() === email.toLowerCase();
+      if (!ok) {
+        error.textContent = res.status === 429 || res.status === 423 ? (data.error || "Too many attempts. Wait a moment and try again.") : "Incorrect password. The download was not started.";
+        input.select();
+        return;
+      }
+      input.value = "";
+      finish(true);
+    } catch (e) {
+      error.textContent = "Could not check your password. Make sure the server is running.";
+    } finally {
+      button.disabled = false; button.textContent = "Download";
+    }
+  }
+
+  // Ask for the password. Resolves true when it is correct, false when cancelled.
+  function confirmDownload(label) {
+    buildDialog();
+    if (pending) finish(false);
+    document.getElementById("dlLockText").innerHTML = `This file contains HR data. Confirm it's you to download <strong>${esc(label || "the report")}</strong>.`;
+    document.getElementById("dlLockError").textContent = "";
+    document.getElementById("dlLockPassword").value = "";
+    document.getElementById("dlLock").hidden = false;
+    document.body.classList.add("modal-open");
+    setTimeout(() => document.getElementById("dlLockPassword").focus(), 30);
+    return new Promise((resolve) => { pending = resolve; });
+  }
+
+  // Replace a global download function with a password-checked version.
+  function protect(name, label) {
+    const original = window[name];
+    if (typeof original !== "function" || original.__protected) return;
+    const guarded = async function (...args) {
+      const text = typeof label === "function" ? label(...args) : label;
+      if (await confirmDownload(text)) return original.apply(this, args);
+    };
+    guarded.__protected = true;
+    window[name] = guarded;
+  }
+
+  // Ask for the password and return it (the server checks it). Resolves null when cancelled.
+  function askPassword(label) {
+    return new Promise((resolve) => {
+      buildDialog();
+      const form = document.getElementById("dlLockForm");
+      const input = document.getElementById("dlLockPassword");
+      document.getElementById("dlLockText").innerHTML = `Confirm it's you to download <strong>${esc(label || "the file")}</strong>.`;
+      document.getElementById("dlLockError").textContent = "";
+      input.value = "";
+      const onSubmit2 = (event) => {
+        event.preventDefault(); event.stopImmediatePropagation();
+        const value = input.value; if (!value) return;
+        input.value = ""; cleanup(); pending = null; finish(false); resolve(value);
+      };
+      const cleanup = () => form.removeEventListener("submit", onSubmit2, true);
+      form.addEventListener("submit", onSubmit2, true);
+      if (pending) finish(false);
+      pending = () => { cleanup(); resolve(null); };
+      document.getElementById("dlLock").hidden = false;
+      document.body.classList.add("modal-open");
+      setTimeout(() => input.focus(), 30);
+    });
+  }
+
+  window.HimsSecure = { confirmDownload, protect, askPassword };
+})();
+
+</script>
+  <style>
+    .msg{margin:.6rem 0;font-weight:600}.msg.ok{color:#15803d}.msg.err{color:#b91c1c}
+    .tbl-wrap{overflow-x:auto;margin-top:1rem}.tbl-wrap table{width:100%}
+    .bar{background:rgba(120,120,120,.25);border-radius:999px;height:8px;min-width:90px;overflow:hidden}
+    .bar i{display:block;height:100%;background:#2563eb}
+    .row-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}
+    .note{font-size:.85rem;opacity:.75;margin-top:.5rem}
+    .deduct td:last-child,.deduct th:last-child{text-align:right}
+    @media print{.portal-sidebar,.topbar,.welcome-panel,.no-print{display:none!important}}
+  </style>
+</head>
+<body class="portal-page">
+  <script>
+    document.documentElement.style.visibility = "hidden";
+    window.employeeAuthApiUrl = location.port === "5500"
+      ? `${location.protocol}//${location.hostname}:8000/backend/api.php`
+      : "backend/api.php";
+    (async () => {
+      try {
+        const response = await fetch(`${window.employeeAuthApiUrl}?resource=me`, {
+          credentials: window.employeeAuthApiUrl.startsWith("http") ? "include" : "same-origin",
+        });
+        const result = await response.json();
+        if (!response.ok || !result.user || result.user.role !== "EMPLOYEE") throw new Error("Employee sign-in required.");
+        const portalResponse = await fetch(`${window.employeeAuthApiUrl}?resource=employee-portal`, {
+          credentials: window.employeeAuthApiUrl.startsWith("http") ? "include" : "same-origin",
+        });
+        const portalData = await portalResponse.json();
+        if (!portalResponse.ok) throw new Error(portalData.error || "Employee data could not be loaded.");
+        window.initialEmployeePortalData = portalData;
+        if (document.readyState === "loading") {
+          await new Promise((resolve) => document.addEventListener("DOMContentLoaded", resolve, { once: true }));
+        }
+        document.documentElement.style.visibility = "";
+        const app = document.createElement("script");
+        app.textContent = document.getElementById("employeeApp").textContent;
+        document.body.appendChild(app);
+      } catch (error) {
+        localStorage.removeItem("activePortalUser");
+        window.location.replace("index.html");
+      }
+    })();
+  </script>
+  <div class="employee-shell">
+    <aside class="portal-sidebar">
+      <div class="brand">
+        <div class="brand-mark">HIMS</div>
+        <div class="brand-text"><strong>HIMS</strong><span>Employee Self-Service</span></div>
+      </div>
+      <nav class="nav">
+        <span class="nav-heading">Overview</span>
+        <button class="nav-item active" type="button" data-module="employee-dashboard"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg><span>Dashboard</span></button>
+        <span class="nav-heading">Requests</span>
+        <button class="nav-item" type="button" data-module="employee-requests"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.5 5h13l3.5 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></svg><span>My Requests</span></button>
+        <button class="nav-item" type="button" data-module="employee-leave"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM4 9h16M8 3v4M16 3v4"/></svg><span>Leave Request</span></button>
+        <button class="nav-item" type="button" data-module="employee-jobs"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h18v12H3zM8 8V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3M3 13h18"/></svg><span>Job Openings</span></button>
+        <span class="nav-heading">My records</span>
+        <button class="nav-item" type="button" data-module="employee-payroll"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v13H3zM3 7l3-4h12l3 4M16 13h2"/></svg><span>Payroll</span></button>
+        <button class="nav-item" type="button" data-module="employee-performance"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-2.9-5.5 2.9 1-6.2L3 9.6l6.2-.9z"/></svg><span>Competency / Performance</span></button>
+        <button class="nav-item" type="button" data-module="employee-reports"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Reports</span></button>
+        <button class="nav-item" type="button" data-module="employee-profile"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-1a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v1M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg><span>Profile</span></button>
+      </nav>
+      <div class="portal-sidebar-footer"><button type="button" class="export-button portal-report-button" onclick="exportCsv('summary')"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span>Export Report</span></button></div>
+    </aside>
+
+    <main class="portal-main">
+      <header class="topbar portal-topbar">
+        <h1>Employee Self-Service</h1>
+        <div class="topbar-actions">
+          <button id="employeeThemeToggle" class="theme-toggle portal-theme-toggle" type="button" aria-pressed="false">Dark mode</button>
+          <button id="employeeProfileButton" class="user-chip" type="button" aria-haspopup="dialog" aria-label="Open employee account panel">
+            <div class="user-avatar" id="chipAvatar">--</div>
+            <div class="user-meta"><strong id="chipName">Employee</strong><span>Employee</span></div>
+          </button>
+        </div>
+      </header>
+
+      <section class="welcome-panel">
+        <h2 id="welcomeTitle">Welcome back.</h2>
+        <p>Request documents and approvals, manage your leave, view payroll, track performance and apply for open positions, all in one place.</p>
+      </section>
+
+      <div class="portal-grid">
+        <!-- DASHBOARD -->
+        <div id="employee-dashboard" class="portal-card module-panel active-module">
+          <h3>Employee Overview</h3>
+          <div class="stat-grid" id="dashStats"></div>
+
+          <div class="mini-panel">
+            <h4>My Scorecard</h4>
+            <div id="empScore"></div>
+          </div>
+          <div class="hx-grid" style="margin-top:20px">
+            <section class="hx-card"><h4>Leave used <span class="hx-src hx-src-db">Live from database</span></h4><p class="hx-note">Days used out of this year's allowance</p><div id="empLeaveChart"></div></section>
+            <section class="hx-card"><h4>Latest competency ratings <span class="hx-src hx-src-db">Live from database</span></h4><p class="hx-note">From your most recent self-assessment (1 to 5)</p><div id="empSkillChart"></div></section>
+            <section class="hx-card"><h4>Performance trend <span class="hx-src hx-src-db">Live from database</span></h4><p class="hx-note">Average score per review period</p><div id="empTrendChart"></div></section>
+            <section class="hx-card"><h4>Goal progress <span class="hx-src hx-src-db">Live from database</span></h4><p class="hx-note">Your active goals and KPIs</p><div id="empGoalChart"></div></section>
+          </div>
+          <div class="mini-panel">
+            <h4>My Data Analytics</h4>
+            <div id="empInsights"></div>
+          </div>
+
+          <div class="mini-panel" id="empAnnouncements" hidden><h4>Announcements</h4><div id="empAnnouncementList"></div></div>
+          <div class="mini-panel">
+            <h4>Quick Notes</h4>
+            <ul class="check-list">
+              <li>Update your emergency contact whenever your details change.</li>
+              <li>Submit leave requests before the cutoff time.</li>
+              <li>Complete your self-assessment each performance period.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ESS: MY REQUESTS -->
+        <div id="employee-requests" class="portal-card module-panel">
+          <h3>My Requests</h3>
+          <p>Send requests to HR without filing paper forms. You'll see HR's decision and any note here.</p>
+          <div class="hx-kpis" id="essMyKpis"></div>
+          <div class="mini-panel">
+            <h4>New Request</h4>
+            <div class="employee-form-grid">
+              <label><span>Request type</span><select id="essType" onchange="essTypeChanged()">
+                <option>Certificate of Employment</option>
+                <option>Update personal information</option>
+                <option>Overtime</option>
+                <option>Reimbursement / claim</option>
+                <option>Schedule change</option>
+                <option>Other</option>
+              </select></label>
+              <label><span>Needed by (optional)</span><input id="essNeeded" type="date" /></label>
+              <label id="essHoursWrap" hidden><span>Overtime hours</span><input id="essHours" type="number" min="0.5" step="0.5" /></label>
+              <label id="essAmountWrap" hidden><span>Amount (&#8369;)</span><input id="essAmount" type="number" min="0" step="0.01" /></label>
+            </div>
+            <label class="ess-details-label"><span>Details</span><textarea id="essDetails" rows="3" maxlength="1000" placeholder="For example: COE for a bank loan application, addressed to BDO Meycauayan."></textarea></label>
+            <button type="button" onclick="submitEssRequest()">Submit Request</button>
+            <div id="essMsg" class="msg"></div>
+          </div>
+          <div class="tbl-wrap"><table class="employee-table">
+            <thead><tr><th>Request</th><th>Details</th><th>Submitted</th><th>Status</th><th>HR note</th></tr></thead>
+            <tbody id="essMyBody"></tbody>
+          </table></div>
+        </div>
+
+        <!-- INTERNAL RECRUITMENT -->
+        <div id="employee-jobs" class="portal-card module-panel">
+          <h3>Job Openings</h3>
+          <p>Apply for another position inside the hospital. Your application goes to HR tagged as an <strong>internal applicant</strong>, with your employee details attached.</p>
+          <div id="jobList" class="int-jobs"><p>Loading open positions...</p></div>
+          <div class="mini-panel" id="jobApplyPanel" hidden>
+            <h4 id="jobApplyTitle">Apply</h4>
+            <div class="employee-form-grid">
+              <label><span>Phone</span><input id="jobPhone" type="tel" /></label>
+              <label><span>Resume (PDF, DOC, DOCX, JPG or PNG, up to 5 MB)</span><input id="jobResume" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" /></label>
+            </div>
+            <label class="ess-details-label"><span>Why you're applying (optional)</span><textarea id="jobNote" rows="3" maxlength="800"></textarea></label>
+            <button type="button" id="jobSend" onclick="sendInternalApplication()">Send Application</button>
+            <button type="button" class="secondary-action" onclick="closeInternalApply()">Cancel</button>
+          </div>
+          <div id="jobMsg" class="msg"></div>
+          <div class="mini-panel">
+            <h4>My internal applications</h4>
+            <div class="tbl-wrap"><table class="employee-table">
+              <thead><tr><th>Position</th><th>Department</th><th>Applied</th></tr></thead>
+              <tbody id="myAppsBody"></tbody>
+            </table></div>
+            <p class="note">HR will contact you about the status of your application.</p>
+          </div>
+        </div>
+
+        <!-- LEAVE -->
+        <div id="employee-leave" class="portal-card module-panel">
+          <h3>Leave Request</h3>
+          <div class="stat-grid" id="leaveBalance"></div>
+          <div class="mini-panel">
+            <h4>New Request</h4>
+            <div class="employee-form-grid">
+              <label><span>Leave Type</span><select id="lType"><option>Vacation Leave</option><option>Sick Leave</option><option>Emergency Leave</option></select></label>
+              <label><span>Start Date</span><input id="lStart" type="date" /></label>
+              <label><span>End Date</span><input id="lEnd" type="date" /></label>
+              <label><span>Reason</span><input id="lReason" type="text" /></label>
+            </div>
+            <button type="button" onclick="submitLeave()">Submit Leave Request</button>
+            <div id="leaveMsg" class="msg"></div>
+          </div>
+          <div class="tbl-wrap"><table class="employee-table">
+            <thead><tr><th>Type</th><th>Start</th><th>End</th><th>Days</th><th>Reason</th><th>Status</th></tr></thead>
+            <tbody id="leaveBody"></tbody>
+          </table></div>
+        </div>
+
+        <!-- PAYROLL -->
+        <div id="employee-payroll" class="portal-card module-panel">
+          <h3>Payroll</h3>
+          <div class="result-toolbar no-print">
+            <input id="payMonth" type="month" onchange="renderPayroll()" />
+            <button type="button" class="compact-button" onclick="window.print()">Print Payslip</button>
+          </div>
+          <div class="stat-grid" id="payStats"></div>
+          <div class="tbl-wrap"><table class="employee-table deduct">
+            <thead><tr><th>Item</th><th>Amount</th></tr></thead>
+            <tbody id="payBody"></tbody>
+          </table></div>
+          <p class="note">Estimate only: government contributions and tax use simplified rates. Pay uses that month's attendance from HR: approved overtime at 125% of the hourly rate, minus absences and undertime (daily rate = monthly salary ÷ 22 days, hourly rate = daily ÷ 8 hours).</p>
+        </div>
+
+        <!-- PERFORMANCE -->
+        <div id="employee-performance" class="portal-card module-panel">
+          <h3>Competency / Performance</h3>
+          <div class="stat-grid" id="perfStats"></div>
+          <div class="mini-panel">
+            <h4>Self-Assessment (1 = Needs Improvement, 5 = Outstanding)</h4>
+            <div class="employee-form-grid" id="perfForm"></div>
+            <div class="employee-form-grid">
+              <label><span>Review Period</span><select id="pPeriod"></select></label>
+              <label><span>Comments</span><input id="pComment" type="text" /></label>
+            </div>
+            <button type="button" onclick="submitReview()">Submit Assessment</button>
+            <div id="perfMsg" class="msg"></div>
+          </div>
+          <div class="mini-panel">
+            <h4>Goals &amp; KPIs</h4>
+            <div class="employee-form-grid">
+              <label><span>New Goal</span><input id="gText" type="text" /></label>
+            </div>
+            <button type="button" onclick="addGoal()">Add Goal</button>
+            <div class="tbl-wrap"><table class="employee-table">
+              <thead><tr><th>Goal</th><th>Progress</th><th>Update %</th><th></th></tr></thead>
+              <tbody id="goalBody"></tbody>
+            </table></div>
+          </div>
+          <div class="tbl-wrap"><table class="employee-table">
+            <thead><tr><th>Period</th><th>Average</th><th>Rating</th><th>Comments</th></tr></thead>
+            <tbody id="reviewBody"></tbody>
+          </table></div>
+        </div>
+
+        <!-- REPORTS -->
+        <div id="employee-reports" class="portal-card module-panel">
+          <h3>Reports</h3>
+          <div class="stat-grid" id="repStats"></div>
+          <div class="row-actions">
+            <button type="button" class="compact-button" onclick="exportCsv('summary')">Export My Summary</button>
+            <button type="button" class="compact-button" onclick="exportCsv('leaves')">Export My Leaves</button>
+            <button type="button" class="compact-button" onclick="exportCsv('reviews')">Export My Reviews</button>
+            <button type="button" class="compact-button" onclick="exportCsv('profile')">Export My Profile</button>
+          </div>
+          <div class="mini-panel">
+            <h4>Headcount by Department</h4>
+            <div class="tbl-wrap"><table class="employee-table">
+              <thead><tr><th>Department</th><th>Employees</th><th>Active</th></tr></thead>
+              <tbody id="headBody"></tbody>
+            </table></div>
+          </div>
+        </div>
+
+        <!-- PROFILE -->
+        <div id="employee-profile" class="portal-card module-panel employee-profile-card">
+          <h3>Employee Profile</h3>
+          <div class="profile-grid" id="profileGrid"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="employeeProfilePanel" class="modal-backdrop" hidden>
+    <section class="modal-panel profile-panel" role="dialog" aria-modal="true" aria-labelledby="employeeProfileTitle">
+      <div class="modal-header">
+        <div><span class="modal-eyebrow">Account</span><h2 id="employeeProfileTitle">Employee profile</h2></div>
+        <button class="modal-close" type="button" aria-label="Close" onclick="closePanel()">&times;</button>
+      </div>
+      <div class="profile-summary">
+        <div class="profile-avatar" id="panelAvatar">--</div>
+        <div><strong id="panelEmail"></strong><span>Employee portal</span></div>
+      </div>
+      <div class="profile-details" id="panelDetails"></div>
+      <div class="profile-actions">
+        <button type="button" onclick="closePanel()">Close</button>
+        <button type="button" class="secondary-action" onclick="logout()">Log out</button>
+      </div>
+    </section>
+  </div>
+
+  <script type="text/plain" id="employeeApp">
+    const $ = (id) => document.getElementById(id);
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    let PORTAL = window.initialEmployeePortalData;
+    const rd = (key) => ({
+      attendance: PORTAL.attendance,
+      requests: PORTAL.requests,
+      leaves: PORTAL.leaves,
+      performanceReviews: PORTAL.reviews,
+      employeeGoals: PORTAL.goals,
+    }[key] || []);
+    async function employeeRequest(payload) {
+      const response = await fetch(`${window.employeeAuthApiUrl}?resource=employee-portal`, {
+        method: 'POST', credentials: window.employeeAuthApiUrl.startsWith('http') ? 'include' : 'same-origin',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Employee request failed.');
+      return result;
+    }
+    async function refreshEmployeeData() {
+      const response = await fetch(`${window.employeeAuthApiUrl}?resource=employee-portal`, {
+        credentials: window.employeeAuthApiUrl.startsWith('http') ? 'include' : 'same-origin',
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Employee data could not be refreshed.');
+      PORTAL = result;
+    }
+    const peso = (n) => '₱' + Number(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const today = () => new Date().toISOString().slice(0, 10);
+    const tile = (l, v) => `<div class="stat-tile"><span>${esc(l)}</span><strong>${esc(v)}</strong></div>`;
+    const say = (id, text, ok = true) => { $(id).className = 'msg ' + (ok ? 'ok' : 'err'); $(id).textContent = text; };
+
+    // Leave allowance comes from the server (Super Admin > Settings); these are the defaults.
+    const QUOTA = Object.assign({ 'Vacation Leave': 15, 'Sick Leave': 10, 'Emergency Leave': 5 }, (window.initialEmployeePortalData || {}).leaveQuotas || {});
+    const COMPETENCIES = ['Job Knowledge', 'Quality of Work', 'Communication', 'Teamwork', 'Reliability & Punctuality', 'Initiative'];
+
+    // ---------- data ----------
+    const ME = PORTAL.profile;
+    const initials = (n) => String(n).split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+    const days = (s, e) => Math.round((new Date(e) - new Date(s)) / 864e5) + 1;
+    const myLeaves = () => rd('leaves');
+    const myReviews = () => rd('performanceReviews');
+    const myGoals = () => rd('employeeGoals');
+    const avg = (a) => a.reduce((x, y) => x + y, 0) / (a.length || 1);
+    const label = (s) => (s >= 4.5 ? 'Outstanding' : s >= 3.5 ? 'Very Satisfactory' : s >= 2.5 ? 'Satisfactory' : 'Needs Improvement');
+    const usedDays = (type) => myLeaves().filter((l) => l.type === type && l.status !== 'Rejected').reduce((t, l) => t + days(l.start, l.end), 0);
+    const otHours = () => rd('requests').filter((r) => r.id === ME.id && String(r.status).toLowerCase() === 'approved').reduce((t, r) => t + Number(r.hours || 0), 0);
+
+    // ---------- header / dashboard / profile ----------
+    function renderHeader() {
+      $('chipAvatar').textContent = $('panelAvatar').textContent = initials(ME.name);
+      $('chipName').textContent = ME.name;
+      $('welcomeTitle').textContent = 'Welcome back, ' + ME.name.split(' ')[0] + '.';
+      $('panelEmail').textContent = ME.email || '(no email)';
+      $('panelDetails').innerHTML = [['Role', 'Employee'], ['Department', ME.department], ['Position', ME.position], ['Employee ID', ME.id]]
+        .map(([l, v]) => `<div><span>${l}</span><strong>${esc(v)}</strong></div>`).join('');
+    }
+    function renderDash() {
+      const pending = myLeaves().filter((l) => l.status === 'Pending').length;
+      $('dashStats').innerHTML = tile('Employee ID', ME.id) + tile('Department', ME.department) + tile('Employment Status', ME.status) + tile('Date Hired', ME.hireDate) +
+        tile('Pending Leave Requests', pending) + tile('Vacation Leave Left', QUOTA['Vacation Leave'] - usedDays('Vacation Leave') + ' days');
+      renderEmpAnalytics();
+    }
+
+    // ---------- graphs, scorecard, data analytics ----------
+    // Targets for the personal scorecard. Change these to match HR policy.
+    const EMP_TARGETS = { performance: 3.5, goalProgress: 70, reviewsThisYear: 1, pendingLeaves: 2 };
+    function renderEmpAnalytics() {
+      if (!window.HimsCharts || !$('empScore')) return;
+      const C = window.HimsCharts;
+      const revs = myReviews(), last = revs[revs.length - 1], prev = revs[revs.length - 2];
+      const goals = myGoals(), goalAvg = goals.length ? Math.round(avg(goals.map((g) => Number(g.progress)))) : null;
+      const year = String(new Date().getFullYear());
+      const reviewsThisYear = revs.filter((r) => String(r.period).startsWith(year)).length;
+      const pending = myLeaves().filter((l) => (l.status || 'Pending') === 'Pending').length;
+      const overQuota = Object.keys(QUOTA).filter((t) => usedDays(t) > QUOTA[t]);
+
+      C.bars($('empLeaveChart'), Object.keys(QUOTA).map((t) => {
+        const used = usedDays(t), left = QUOTA[t] - used;
+        return { label: t, value: used, max: QUOTA[t], text: `${used} of ${QUOTA[t]} days`, tone: left < 0 ? 'bad' : left <= 2 ? 'watch' : 'main' };
+      }));
+      C.bars($('empSkillChart'), last && Array.isArray(last.ratings) ? COMPETENCIES.map((c, i) => {
+        const v = Number(last.ratings[i]) || 0;
+        return { label: c, value: v, max: 5, text: v + ' / 5', tone: v >= 4 ? 'good' : v >= 3 ? 'main' : 'watch' };
+      }) : [], { empty: 'Submit a self-assessment in Competency / Performance to see your ratings.' });
+      C.line($('empTrendChart'), revs.map((r) => ({ label: r.period, value: Number(r.avg) || 0 })),
+        { max: 5, format: (n) => Number(n).toFixed(1), label: 'Average score per review', empty: 'Your trend appears after two or more assessments.' });
+      C.bars($('empGoalChart'), goals.map((g) => ({ label: g.text, value: Number(g.progress), max: 100, text: Number(g.progress) + '%', tone: Number(g.progress) >= 100 ? 'good' : 'main' })),
+        { empty: 'Add a goal in Competency / Performance to track it here.' });
+
+      const T = EMP_TARGETS;
+      const row = (metric, value, shown, target, higher, note, unit = '') => ({
+        metric, note, actual: value == null ? 'No data' : shown,
+        target: (higher ? '\u2265 ' : '\u2264 ') + target + unit,
+        status: value == null ? 'na' : C.grade(value, target, higher),
+      });
+      C.scorecard($('empScore'), [
+        row('Latest performance score', last ? last.avg : null, last ? last.avg.toFixed(2) + ' / 5 (' + label(last.avg) + ')' : '', T.performance, true, 'From your most recent self-assessment'),
+        row('Average goal progress', goalAvg, goalAvg + '%', T.goalProgress, true, goals.length + ' active goal(s)', '%'),
+        row('Assessments this year', reviewsThisYear, String(reviewsThisYear), T.reviewsThisYear, true, 'Self-assessments submitted in ' + year),
+        row('Pending leave requests', pending, String(pending), T.pendingLeaves, false, 'Waiting for HR approval'),
+        { metric: 'Leave within allowance', note: 'Days used compared with each leave allowance', actual: overQuota.length ? 'Over on ' + overQuota.join(', ') : 'All within allowance', target: 'No type over limit', status: overQuota.length ? 'bad' : 'good' },
+      ], { tableClass: 'employee-table' });
+
+      const notes = [];
+      if (last && Array.isArray(last.ratings)) {
+        const scored = COMPETENCIES.map((c, i) => ({ c, v: Number(last.ratings[i]) || 0 }));
+        const best = scored.reduce((a, b) => (b.v > a.v ? b : a)), worst = scored.reduce((a, b) => (b.v < a.v ? b : a));
+        notes.push({ text: `Your strongest area is ${best.c} (${best.v}/5).`, tone: 'good' });
+        if (worst.v < best.v) notes.push({ text: `${worst.c} is your lowest rating (${worst.v}/5). Consider setting a goal for it.`, tone: worst.v < 3 ? 'watch' : 'main' });
+      } else {
+        notes.push({ text: 'You have not submitted a self-assessment yet. Complete one in Competency / Performance.', tone: 'watch' });
+      }
+      if (last && prev) {
+        const diff = last.avg - prev.avg;
+        notes.push({ text: diff === 0 ? `Your score stayed at ${last.avg.toFixed(2)} since ${prev.period}.` : `Your score ${diff > 0 ? 'rose' : 'fell'} by ${Math.abs(diff).toFixed(2)} since ${prev.period}.`, tone: diff >= 0 ? 'good' : 'watch' });
+      }
+      const doneGoals = goals.filter((g) => Number(g.progress) >= 100).length;
+      if (goals.length) notes.push({ text: `${doneGoals} of ${goals.length} goal(s) completed; average progress is ${goalAvg}%.`, tone: goalAvg >= T.goalProgress ? 'good' : 'main' });
+      const used = Object.keys(QUOTA).reduce((t, k) => t + usedDays(k), 0);
+      const total = Object.values(QUOTA).reduce((a, b) => a + b, 0);
+      notes.push({ text: `You have used ${used} of ${total} leave days this year, leaving ${total - used}.`, tone: overQuota.length ? 'bad' : 'main' });
+      if (pending) notes.push({ text: `${pending} leave request(s) are waiting for HR approval.` });
+      const essPending = (typeof myEss === 'function' ? myEss() : []).filter((r) => r.status === 'Pending').length;
+      if (essPending) notes.push({ text: `${essPending} self-service request(s) are waiting for HR. Check My Requests for updates.` });
+      const ot = otHours();
+      if (ot) notes.push({ text: `You have ${ot} approved overtime hour(s) included in this month's payroll estimate.` });
+      C.insights($('empInsights'), notes);
+    }
+    function renderProfile() {
+      const li = (l, v) => `<li><span>${l}</span><strong>${esc(v || '-')}</strong></li>`;
+      $('profileGrid').innerHTML = `<div><h4>Personal Information</h4><ul class="info-list">${li('Employee ID', ME.id)}${li('Full Name', ME.name)}${li('Position', ME.position)}${li('Department', ME.department)}</ul></div>
+        <div><h4>Employment Details</h4><ul class="info-list">${li('Contact Information', ME.contact)}${li('Employment Status', ME.status)}${li('Date Hired', ME.hireDate)}${li('Emergency Contact', ME.emergency)}</ul></div>`;
+    }
+
+    // ---------- leave ----------
+    async function submitLeave() {
+      const type = $('lType').value, start = $('lStart').value, end = $('lEnd').value;
+      if (!start || !end) return say('leaveMsg', 'Please choose a start and end date.', false);
+      if (end < start) return say('leaveMsg', 'End date cannot be before the start date.', false);
+      const left = QUOTA[type] - usedDays(type);
+      if (days(start, end) > left) return say('leaveMsg', `Not enough ${type} balance (${left} day(s) left).`, false);
+      try {
+        await employeeRequest({ action: 'leave-create', type, start, end, reason: $('lReason').value.trim() });
+        await refreshEmployeeData();
+        ['lStart', 'lEnd', 'lReason'].forEach((id) => { $(id).value = ''; });
+        say('leaveMsg', 'Leave request submitted for approval.');
+        renderLeave(); renderDash(); renderReports();
+      } catch (error) {
+        say('leaveMsg', error.message || 'Leave request could not be submitted.', false);
+      }
+    }
+    function renderLeave() {
+      $('leaveBalance').innerHTML = Object.keys(QUOTA).map((t) => tile(t + ' left', (QUOTA[t] - usedDays(t)) + ' / ' + QUOTA[t])).join('');
+      const rows = myLeaves().slice().reverse();
+      $('leaveBody').innerHTML = rows.length ? rows.map((l) => `<tr><td>${esc(l.type)}</td><td>${esc(l.start)}</td><td>${esc(l.end)}</td><td>${days(l.start, l.end)}</td><td>${esc(l.reason || '-')}</td><td><span class="employee-status">${esc(l.status || 'Pending')}</span></td></tr>`).join('')
+        : '<tr><td colspan="6">No leave requests yet.</td></tr>';
+    }
+
+    // ---------- payroll ----------
+    function annualTax(t) {
+      if (t <= 250000) return 0;
+      if (t <= 400000) return (t - 250000) * 0.15;
+      if (t <= 800000) return 22500 + (t - 400000) * 0.2;
+      if (t <= 2000000) return 102500 + (t - 800000) * 0.25;
+      return 402500 + (t - 2000000) * 0.3;
+    }
+    // The month's real attendance from HR's records (absences, undertime, approved overtime): backend/timekeeping.php
+    const tkMonths = {};
+    async function loadMyMonth(month) {
+      try {
+        const res = await fetch(`${window.employeeAuthApiUrl}?resource=timekeeping&view=my-month&month=${encodeURIComponent(month)}`, {
+          credentials: window.employeeAuthApiUrl.startsWith('http') ? 'include' : 'same-origin', cache: 'no-store' });
+        const data = await res.json();
+        tkMonths[month] = res.ok ? (data.record || null) : null;
+      } catch (e) { tkMonths[month] = null; }
+    }
+    function renderPayroll() {
+      if (!$('payMonth').value) $('payMonth').value = today().slice(0, 7);
+      const month = $('payMonth').value, s = Number(ME.salary) || 0;
+      if (!(month in tkMonths)) {
+        tkMonths[month] = undefined; // loading
+        loadMyMonth(month).then(() => { if ($('payMonth').value === month) renderPayroll(); });
+      }
+      const t = tkMonths[month];
+      const daily = s / 22, hourly = daily / 8;
+      const ot = t ? Number(t.overtimeApproved) || 0 : (month === today().slice(0, 7) ? otHours() : 0);
+      const otPay = ot * hourly * 1.25;
+      const absences = t && t.countedFrom ? Number(t.absences) || 0 : 0;
+      const undertime = t ? Number(t.undertimeHours) || 0 : 0;
+      const absentPay = Math.min(s, absences * daily), undertimePay = Math.min(s - absentPay, undertime * hourly);
+      const earned = s + otPay - absentPay - undertimePay;
+      const sss = Math.min(s, 35000) * 0.05, ph = Math.min(s, 100000) * 0.025, hdmf = Math.min(s, 10000) * 0.02;
+      const taxable = Math.max(0, earned - sss - ph - hdmf), tax = annualTax(taxable * 12) / 12;
+      const net = earned - sss - ph - hdmf - tax;
+      const gross = s + otPay;
+      const row = (l, v, b) => `<tr><td>${b ? '<strong>' + l + '</strong>' : l}</td><td>${b ? '<strong>' + peso(v) + '</strong>' : peso(v)}</td></tr>`;
+      const basis = t === undefined ? 'Loading your attendance for this month...'
+        : t === null ? 'Attendance could not be loaded; absences and undertime are not included.'
+        : !t.countedFrom ? 'No attendance recorded yet, so no absences are counted.'
+        : `Attendance: ${t.daysPresent} of ${t.workDays} work days present, ${t.leaveDays} paid leave day(s), ${absences} absence(s), ${undertime} undertime hour(s).`;
+      $('payStats').innerHTML = tile('Pay Period', month) + tile('Gross Pay', peso(gross)) + tile('Deductions', peso(gross - net)) + tile('Net Pay', peso(net));
+      $('payBody').innerHTML = row('Basic monthly salary', s) + row(`Overtime (${ot} approved hrs at 125%)`, otPay) + row('Gross pay', gross, 1) +
+        row(`Absences (${absences} day${absences === 1 ? '' : 's'} at ${peso(daily)})`, -absentPay) +
+        row(`Undertime (${undertime} hr${undertime === 1 ? '' : 's'} at ${peso(hourly)})`, -undertimePay) +
+        row('SSS contribution', -sss) + row('PhilHealth', -ph) + row('Pag-IBIG', -hdmf) + row('Withholding tax', -tax) + row('Net pay', net, 1) +
+        `<tr><td colspan="2"><small>${esc(basis)}</small></td></tr>`;
+    }
+
+    // ---------- performance ----------
+    function renderPerf() {
+      if (!$('perfForm').children.length) {
+        $('perfForm').innerHTML = COMPETENCIES.map((c, i) => `<label><span>${c}</span><select id="rate${i}">${[5, 4, 3, 2, 1].map((n) => `<option value="${n}">${n}</option>`).join('')}</select></label>`).join('');
+        const y = new Date().getFullYear();
+        $('pPeriod').innerHTML = [`${y} H1`, `${y} H2`, `${y + 1} H1`].map((p) => `<option>${p}</option>`).join('');
+      }
+      const revs = myReviews(), last = revs[revs.length - 1];
+      const goals = myGoals(), gp = Math.round(avg(goals.map((g) => Number(g.progress))));
+      $('perfStats').innerHTML = tile('Latest Score', last ? last.avg.toFixed(2) + ' / 5' : 'No review yet') + tile('Rating', last ? label(last.avg) : '-') + tile('Reviews Submitted', revs.length) + tile('Goal Progress', goals.length ? gp + '%' : '-');
+      $('reviewBody').innerHTML = revs.length ? revs.slice().reverse().map((r) => `<tr><td>${esc(r.period)}</td><td>${r.avg.toFixed(2)}</td><td>${label(r.avg)}</td><td>${esc(r.comment || '-')}</td></tr>`).join('')
+        : '<tr><td colspan="4">No assessments yet.</td></tr>';
+      $('goalBody').innerHTML = goals.length ? goals.map((g) => `<tr><td>${esc(g.text)}</td><td><div class="bar"><i style="width:${Number(g.progress)}%"></i></div>${Number(g.progress)}%</td>
+        <td><input type="number" min="0" max="100" value="${Number(g.progress)}" style="width:5rem" onchange="setGoal('${esc(g.gid)}',this.value)"></td>
+        <td><button type="button" onclick="archiveGoal('${esc(g.gid)}')">Archive</button></td></tr>`).join('') : '<tr><td colspan="4">No goals yet.</td></tr>';
+    }
+    async function submitReview() {
+      const ratings = COMPETENCIES.map((_, i) => Number($('rate' + i).value)), period = $('pPeriod').value;
+      if (myReviews().some((review) => review.period === period)) return say('perfMsg', `You already submitted an assessment for ${period}.`, false);
+      try {
+        await employeeRequest({ action: 'review-create', period, ratings, comment: $('pComment').value.trim() });
+        await refreshEmployeeData();
+        $('pComment').value = '';
+        say('perfMsg', 'Assessment submitted.'); renderPerf(); renderReports();
+      } catch (error) {
+        say('perfMsg', error.message || 'Assessment could not be submitted.', false);
+      }
+    }
+    async function addGoal() {
+      const text = $('gText').value.trim(); if (!text) return;
+      try {
+        await employeeRequest({ action: 'goal-create', text });
+        await refreshEmployeeData();
+        $('gText').value = ''; renderPerf(); renderReports();
+      } catch (error) { say('perfMsg', error.message || 'Goal could not be added.', false); }
+    }
+    async function setGoal(gid, val) {
+      const progress = Math.max(0, Math.min(100, Number(val) || 0));
+      try {
+        await employeeRequest({ action: 'goal-update', id: Number(gid), progress });
+        await refreshEmployeeData(); renderPerf(); renderReports();
+      } catch (error) { say('perfMsg', error.message || 'Goal could not be updated.', false); }
+    }
+    async function archiveGoal(gid) {
+      try {
+        await employeeRequest({ action: 'goal-archive', id: Number(gid) });
+        await refreshEmployeeData(); renderPerf(); renderReports();
+      } catch (error) { say('perfMsg', error.message || 'Goal could not be archived.', false); }
+    }
+
+    // ---------- reports ----------
+    function renderReports() {
+      const revs = myReviews(), last = revs[revs.length - 1], goals = myGoals();
+      const att = rd('attendance').filter((a) => a.id === ME.id).length;
+      const used = Object.keys(QUOTA).reduce((t, k) => t + usedDays(k), 0);
+      $('repStats').innerHTML = tile('Attendance Records', att) + tile('Leave Days Used', used) + tile('Approved Overtime', otHours() + ' hrs') +
+        tile('Latest Performance', last ? last.avg.toFixed(2) + ' / 5' : '-') + tile('Goal Progress', goals.length ? Math.round(avg(goals.map((g) => Number(g.progress)))) + '%' : '-') + tile('Total Employees', PORTAL.employeeCount);
+      $('headBody').innerHTML = (PORTAL.departmentCounts || []).map((row) => `<tr><td>${esc(row.department)}</td><td>${Number(row.total)}</td><td>${Number(row.active)}</td></tr>`).join('') || '<tr><td colspan="3">No data.</td></tr>';
+      renderEmpAnalytics();
+    }
+    function exportCsv(kind) {
+      const revs = myReviews(), last = revs[revs.length - 1];
+      const sets = {
+        profile: [['Employee ID', 'Name', 'Email', 'Position', 'Department', 'Status', 'Date Hired', 'Contact'], [ME.id, ME.name, ME.email, ME.position, ME.department, ME.status, ME.hireDate, ME.contact || '']],
+        leaves: [['Type', 'Start', 'End', 'Days', 'Reason', 'Status'], ...myLeaves().map((l) => [l.type, l.start, l.end, days(l.start, l.end), l.reason || '', l.status || 'Pending'])],
+        reviews: [['Period', 'Average', 'Rating', ...COMPETENCIES, 'Comments'], ...revs.map((r) => [r.period, r.avg.toFixed(2), label(r.avg), ...r.ratings, r.comment || ''])],
+        summary: [['Employee', 'ID', 'Department', 'Leave Days Used', 'Approved OT Hours', 'Latest Performance'], [ME.name, ME.id, ME.department, Object.keys(QUOTA).reduce((t, k) => t + usedDays(k), 0), otHours(), last ? last.avg.toFixed(2) : '']],
+      };
+      const csv = sets[kind].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+      a.download = `employee_${kind}.csv`; a.click(); URL.revokeObjectURL(a.href);
+    }
+
+    // ---------- ESS: My Requests ----------
+    // Saved under localStorage "essRequests" (shared with the HR "ESS Requests" page).
+    const ESS_KEY = 'essRequests';
+    const essAll = () => { try { return JSON.parse(localStorage.getItem(ESS_KEY) || '[]'); } catch (e) { return []; } };
+    const myEss = () => essAll().filter((r) => r.empId === ME.id || (ME.email && r.email === ME.email));
+    const ESS_TONE = { Pending: 'watch', Approved: 'good', Completed: 'good', Rejected: 'bad' };
+    function essTypeChanged() {
+      const t = $('essType').value;
+      $('essHoursWrap').hidden = t !== 'Overtime';
+      $('essAmountWrap').hidden = t !== 'Reimbursement / claim';
+    }
+    function submitEssRequest() {
+      const type = $('essType').value, details = $('essDetails').value.trim();
+      if (!details) return say('essMsg', 'Please describe your request in Details.', false);
+      const hours = type === 'Overtime' ? Number($('essHours').value) : 0;
+      const amount = type === 'Reimbursement / claim' ? Number($('essAmount').value) : 0;
+      if (type === 'Overtime' && !(hours > 0)) return say('essMsg', 'Enter the number of overtime hours.', false);
+      if (type === 'Reimbursement / claim' && !(amount > 0)) return say('essMsg', 'Enter the amount to be reimbursed.', false);
+      const all = essAll();
+      all.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), empId: ME.id, name: ME.name, email: ME.email || '',
+        department: ME.department || '', type, details, neededBy: $('essNeeded').value || '', hours: hours || '', amount: amount || '',
+        status: 'Pending', created: new Date().toLocaleString() });
+      localStorage.setItem(ESS_KEY, JSON.stringify(all));
+      ['essDetails', 'essNeeded', 'essHours', 'essAmount'].forEach((id) => { $(id).value = ''; });
+      say('essMsg', 'Request sent to HR. You will see the result here.');
+      renderRequests(); renderEmpAnalytics();
+    }
+    function renderRequests() {
+      const rows = myEss();
+      const count = rows.reduce((c, r) => ((c[r.status] = (c[r.status] || 0) + 1), c), {});
+      window.HimsCharts.kpis($('essMyKpis'), [
+        { label: 'Pending', value: count.Pending || 0, tone: count.Pending ? 'watch' : 'main' },
+        { label: 'Approved', value: (count.Approved || 0) + (count.Completed || 0) },
+        { label: 'Rejected', value: count.Rejected || 0, tone: 'muted' },
+      ]);
+      $('essMyBody').innerHTML = rows.length ? rows.map((r) => `<tr><td>${esc(r.type)}${r.hours ? '<br><small>' + esc(r.hours) + ' hr(s)</small>' : ''}${r.amount ? '<br><small>' + peso(r.amount) + '</small>' : ''}</td>
+        <td>${esc(r.details)}${r.neededBy ? '<br><small>Needed by ' + esc(r.neededBy) + '</small>' : ''}</td><td>${esc(r.created)}</td>
+        <td><span class="hx-pill hx-pill-${ESS_TONE[r.status] || 'na'}">${esc(r.status)}</span></td><td>${esc(r.hrNote || '-')}</td></tr>`).join('')
+        : '<tr><td colspan="5">No requests yet.</td></tr>';
+    }
+    window.addEventListener('storage', (e) => { if (e.key === ESS_KEY) { renderRequests(); renderEmpAnalytics(); } });
+
+    // ---------- Internal recruitment: Job Openings ----------
+    let JOBS = [], applyingTo = null;
+    const MYAPPS_KEY = 'internalApplications:' + ME.id;
+    const myApps = () => { try { return JSON.parse(localStorage.getItem(MYAPPS_KEY) || '[]'); } catch (e) { return []; } };
+    async function loadJobs() {
+      try {
+        const res = await fetch(`${window.employeeAuthApiUrl}?resource=public-vacancies`, { credentials: window.employeeAuthApiUrl.startsWith('http') ? 'include' : 'same-origin' });
+        const data = await res.json();
+        if (!res.ok) throw new Error();
+        JOBS = data.records || [];
+      } catch (e) { $('jobList').innerHTML = '<p>Open positions could not be loaded right now.</p>'; return; }
+      const applied = new Set(myApps().map((a) => String(a.vacancyId)));
+      $('jobList').innerHTML = JOBS.length ? JOBS.map((j) => `<article class="int-job">
+          <div><strong>${esc(j.title)}</strong><small>${esc([j.department, j.type, Number(j.slots) + (Number(j.slots) === 1 ? ' slot' : ' slots'), j.deadline ? 'Apply by ' + j.deadline : ''].filter(Boolean).join(' \u2022 '))}</small>
+          ${j.description ? `<p>${esc(j.description)}</p>` : ''}
+          ${(() => { const q = String(j.qualifications || '').split(/\n+/).map((x) => x.trim()).filter(Boolean); return q.length ? `<div class="job-quals"><strong>Qualifications Required:</strong><ul>${q.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''; })()}</div>
+          ${applied.has(String(j.id)) ? '<span class="hx-pill hx-pill-good">Applied</span>' : `<button type="button" onclick="openInternalApply(${Number(j.id)})">Apply</button>`}
+        </article>`).join('') : '<p>There are no open positions right now.</p>';
+      const mine = myApps();
+      $('myAppsBody').innerHTML = mine.length ? mine.map((a) => `<tr><td>${esc(a.title)}</td><td>${esc(a.department || '-')}</td><td>${esc(a.date)}</td></tr>`).join('') : '<tr><td colspan="3">You have not applied to any position yet.</td></tr>';
+    }
+    function openInternalApply(id) {
+      applyingTo = JOBS.find((j) => Number(j.id) === Number(id)); if (!applyingTo) return;
+      $('jobApplyTitle').textContent = 'Apply for ' + applyingTo.title;
+      $('jobPhone').value = ME.contact || '';
+      $('jobMsg').textContent = '';
+      $('jobApplyPanel').hidden = false;
+      $('jobApplyPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function closeInternalApply() { applyingTo = null; $('jobApplyPanel').hidden = true; $('jobResume').value = ''; $('jobNote').value = ''; }
+    async function sendInternalApplication() {
+      if (!applyingTo) return;
+      const file = $('jobResume').files[0];
+      if (!file) return say('jobMsg', 'Attach your resume.', false);
+      if (!/\.(pdf|docx?|jpe?g|png)$/i.test(file.name)) return say('jobMsg', 'Resume must be a PDF, DOC, DOCX, JPG or PNG file.', false);
+      if (file.size > 5 * 1024 * 1024) return say('jobMsg', 'Resume is larger than 5 MB.', false);
+      if (!ME.email) return say('jobMsg', 'Your account has no email address. Ask HR to add one first.', false);
+      const tag = `[Internal applicant - ${ME.id}, ${ME.position || 'Employee'}, ${ME.department || ''}]`;
+      const fd = new FormData();
+      fd.append('vacancy_id', applyingTo.id); fd.append('name', ME.name); fd.append('email', ME.email);
+      fd.append('phone', $('jobPhone').value.trim()); fd.append('note', (tag + ' ' + $('jobNote').value.trim()).trim()); fd.append('resume', file);
+      $('jobSend').disabled = true;
+      try {
+        const res = await fetch(`${window.employeeAuthApiUrl}?resource=apply`, { method: 'POST', body: fd, credentials: window.employeeAuthApiUrl.startsWith('http') ? 'include' : 'same-origin' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Your application could not be sent.');
+        const mine = myApps();
+        mine.unshift({ vacancyId: applyingTo.id, title: applyingTo.title, department: applyingTo.department, date: new Date().toLocaleDateString() });
+        localStorage.setItem(MYAPPS_KEY, JSON.stringify(mine));
+        const title = applyingTo.title;
+        closeInternalApply();
+        await loadJobs();
+        say('jobMsg', `Application for ${title} sent to HR as an internal applicant.`);
+      } catch (error) {
+        say('jobMsg', error.message, false);
+      } finally { $('jobSend').disabled = false; }
+    }
+
+    // ---------- navigation / theme / session ----------
+    const navButtons = document.querySelectorAll('.nav-item');
+    const panels = document.querySelectorAll('.module-panel');
+    navButtons.forEach((button) => button.addEventListener('click', () => {
+      navButtons.forEach((b) => b.classList.toggle('active', b === button));
+      panels.forEach((p) => {
+        const on = p.id === button.dataset.module;
+        p.classList.toggle('active-module', on);
+        p.style.display = on ? 'block' : 'none';
+      });
+      if (button.dataset.module === 'employee-jobs') loadJobs();
+      if (button.dataset.module === 'employee-requests') renderRequests();
+    }));
+    const themeBtn = $('employeeThemeToggle');
+    function applyTheme(theme) {
+      const dark = theme === 'dark';
+      document.body.classList.toggle('dark-mode', dark);
+      document.body.classList.toggle('portal-light-mode', !dark);
+      themeBtn.textContent = dark ? 'Light mode' : 'Dark mode';
+      themeBtn.setAttribute('aria-pressed', String(dark));
+    }
+    themeBtn.addEventListener('click', () => {
+      const next = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+      localStorage.setItem('employeePortalTheme', next); applyTheme(next);
+    });
+    const closePanel = () => { $('employeeProfilePanel').hidden = true; document.body.classList.remove('modal-open'); };
+    $('employeeProfileButton').addEventListener('click', () => { $('employeeProfilePanel').hidden = false; document.body.classList.add('modal-open'); });
+    async function logout() {
+      try {
+        await fetch(`${window.employeeAuthApiUrl}?resource=logout`, {
+          method: 'POST', credentials: window.employeeAuthApiUrl.startsWith('http') ? 'include' : 'same-origin',
+          headers: { 'Content-Type': 'application/json' }, body: '{}'
+        });
+      } finally {
+        closePanel(); window.location.href = 'index.html';
+      }
+    }
+
+    applyTheme(localStorage.getItem('employeePortalTheme') || 'dark');
+    async function loadAnnouncements() {
+      try {
+        const response = await fetch(`${window.employeeAuthApiUrl}?resource=announcements`, {
+          credentials: window.employeeAuthApiUrl.startsWith('http') ? 'include' : 'same-origin',
+        });
+        const result = await response.json();
+        if (!response.ok) return;
+        const rows = (result.records || []).slice(0, 5);
+        $('empAnnouncements').hidden = !rows.length;
+        $('empAnnouncementList').innerHTML = rows.map((a) => `<div class="announce-item"><strong>${esc(a.title)}</strong><small>${esc(a.created)}${a.author ? ' &middot; ' + esc(a.author) : ''}</small>${a.body ? `<p>${esc(a.body)}</p>` : ''}</div>`).join('');
+      } catch (error) { /* announcements are optional */ }
+    }
+    window.HIMS_SIGNED_IN_EMAIL = ME.email || '';
+    if (window.HimsSecure) window.HimsSecure.protect('exportCsv', (kind) => `your ${kind} report`);
+    renderHeader(); renderDash(); renderProfile(); renderLeave(); renderPayroll(); renderPerf(); renderReports(); renderRequests(); loadAnnouncements();
+  </script>
+  <script src="hims-assistant.js"></script>
+  <script src="hims-security.js"></script>
+  <script src="hims-polish.js"></script>
+</body>
+</html>

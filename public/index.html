@@ -1,0 +1,2863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HIMS | Hospital System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="loginPage" class="card">
+  <aside id="jobsBoard" class="jobs-board" aria-label="Open positions">
+    <div class="jobs-head">
+      <div><span class="jobs-eyebrow">Now hiring</span><h2>Job Openings</h2></div>
+      <a class="jobs-all" href="careers.html">View all</a>
+    </div>
+    <div id="jobsList" class="jobs-list"><p class="jobs-empty">Loading open positions...</p></div>
+  </aside>
+
+  <div class="auth-card">
+  <div class="auth-brand">
+    <div class="brand-mark">HIMS</div>
+    <div class="brand-text">
+      <strong>HIMS</strong>
+      <span>Hospital System</span>
+    </div>
+  </div>
+
+  <div class="login-layout">
+    <section id="loginPanel" class="account-panel">
+      <h3>HR Login</h3>
+
+      <div id="loginCredentials">
+        <input id="email" type="email" placeholder="Email" autocomplete="username">
+        <div class="password-field">
+          <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+          <button type="button" class="toggle-password" data-target="password" aria-label="Show password" aria-pressed="false" title="Show password"><svg class="password-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-5 10-5 10 5 10 5-3.5 5-10 5S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle><path class="eye-slash" d="M3 3 21 21"></path></svg></button>
+        </div>
+        <div class="action-row">
+          <button type="button" onclick="login()">Login</button>
+          <button type="button" class="secondary-button" onclick="forgotPassword()">Forgot Password</button>
+        </div>
+      </div>
+
+      <p id="loginMessage" class="login-message" role="alert" aria-live="polite"></p>
+    </section>
+  </div>
+  </div>
+</div>
+
+<div id="dashboard" style="display:none">
+  <div class="app-shell">
+    <div class="nav-backdrop" data-nav-close hidden></div>
+    <aside class="sidebar" id="appSidebar">
+      <div class="brand">
+        <div class="brand-mark">HIMS</div>
+        <div class="brand-text">
+          <strong>HIMS</strong>
+          <span>Hospital System</span>
+        </div>
+      </div>
+
+      <nav class="nav" data-admin-nav>
+        <button class="nav-item" data-module="staff-home" data-roles="HR_STAFF" onclick="showModule('staff-home')" hidden>My Work Today</button>
+        <button class="nav-item" data-module="officer-home" data-roles="HR_OFFICER" onclick="showModule('officer-home')" hidden>Approvals</button>
+        <button class="nav-item active" data-module="dashboard-panel" onclick="showModule('dashboard-panel')">Dashboard</button>
+        <button class="nav-item" data-module="leave" data-roles="HR_STAFF" onclick="showModule('leave')" hidden>Leave Encoding</button>
+        <button class="nav-item" data-module="timesheet" data-roles="HR_STAFF" onclick="showModule('timesheet')" hidden>Overtime Encoding</button>
+        <button class="nav-item" data-module="claims" onclick="showModule('claims')">Claims</button>
+        <button class="nav-item" data-module="search" onclick="showModule('search')">Search Employee</button>
+        <button class="nav-item" data-module="empdir" onclick="showModule('empdir')">Employee Directory</button>
+        <button class="nav-item" data-module="records" onclick="showModule('records')">Employee Records</button>
+        <button class="nav-item" data-module="essadmin" onclick="showModule('essadmin')">ESS Requests</button>
+        <button class="nav-item" data-module="approval" onclick="showModule('approval')">HR Requests</button>
+        <button class="nav-item" data-module="filex" onclick="showModule('filex')">File Exchange</button>
+        <button class="nav-item" data-module="tkapprovals" onclick="showModule('tkapprovals')">Timekeeping</button>
+        <button class="nav-item" data-module="vacancies" onclick="showModule('vacancies')">Vacancies</button>
+        <button class="nav-item" data-module="applicants" onclick="showModule('applicants')">Applications</button>
+        <button class="nav-item" data-module="interview" onclick="showModule('interview')">Interview</button>
+        <button class="nav-item" data-module="onboarding" onclick="showModule('onboarding')">Onboarding</button>
+        <button class="nav-item" data-module="trainai" onclick="showModule('trainai')">Train AI</button>
+        <button class="nav-item" data-module="auditlog" onclick="showModule('auditlog')">Audit Log</button>
+      </nav>
+
+      <nav class="nav super-nav" data-super-nav hidden>
+        <span class="nav-heading">Monitoring</span>
+        <button class="nav-item active" data-module="super-overview" onclick="showModule('super-overview')">System Overview</button>
+        <button class="nav-item" data-module="super-audit" onclick="showModule('super-audit')">Security Audit</button>
+        <span class="nav-heading">People</span>
+        <button class="nav-item" data-module="super-accounts" onclick="showModule('super-accounts')">Accounts &amp; Roles</button>
+        <button class="nav-item" data-module="super-departments" onclick="showModule('super-departments')">Departments</button>
+        <span class="nav-heading">System</span>
+        <button class="nav-item" data-module="super-announcements" onclick="showModule('super-announcements')">Announcements</button>
+        <button class="nav-item" data-module="super-settings" onclick="showModule('super-settings')">Settings</button>
+        <span class="nav-heading">Integration</span>
+        <button class="nav-item" data-module="filex" onclick="showModule('filex')">File Exchange</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="export-button" data-admin-only type="button" onclick="exportReports()">Export Report</button>
+        <button id="supportButton" class="support-button" type="button" aria-haspopup="dialog">Support</button>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <button id="navToggle" class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <h1 id="workspaceTitle">ADMIN MANAGEMENT</h1>
+
+        <div class="topbar-actions">
+          <label class="search-field" data-admin-only aria-label="Global search">
+            <span>⌕</span>
+            <input id="globalSearch" type="search" placeholder="Search anything..." autocomplete="off">
+            <div id="globalSearchResults" class="global-search-results" hidden></div>
+          </label>
+          <div class="notification-wrap" data-admin-only>
+            <button id="notificationButton" class="icon-button" type="button" aria-label="Open notifications" aria-expanded="false"><svg class="bell-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span id="notificationBadge" class="notification-badge" hidden>0</span></button>
+            <div id="notificationPanel" class="notification-panel" hidden>
+              <div class="notification-header">
+                <strong>Notifications</strong>
+                <span class="notification-tools">
+                  <button type="button" id="notifArchivedToggle" onclick="toggleArchivedNotifications()">Show archived</button>
+                  <button type="button" id="notifArchiveAll" onclick="archiveNotifications()">Archive all</button>
+                </span>
+              </div>
+              <div id="notificationList" class="notification-list"></div>
+            </div>
+          </div>
+          <button id="themeToggle" class="theme-toggle" type="button" aria-label="Enable dark mode" aria-pressed="false">Dark mode</button>
+          <button id="profileButton" class="user-chip" type="button" aria-haspopup="dialog" aria-expanded="false">
+            <div class="user-avatar">AD</div>
+            <div class="user-meta">
+              <strong>Administrator</strong>
+              <span>System Administrator</span>
+            </div>
+          </button>
+        </div>
+      </header>
+
+      <section class="welcome-panel" id="workspaceWelcome">
+        <h2>Welcome back, Administrator</h2>
+        <p>Review vacancies and applications, then coordinate accepted-candidate onboarding.</p>
+      </section>
+
+      <div class="content-stack">
+        <div id="dashboard-panel" class="card module" style="display:block;">
+          <div id="adminAnnouncements" class="announce-box" hidden><h4>Announcements</h4><div id="adminAnnouncementList"></div></div>
+
+          <div class="hx-head">
+            <div><h3>HR Dashboard</h3><p class="hx-sub" id="hxAdminUpdated">Loading analytics...</p></div>
+            <button type="button" onclick="refreshAdminAnalytics()">Refresh</button>
+          </div>
+          <div class="hx-kpis" id="hxAdminKpis"></div>
+
+          <div class="hx-grid">
+            <section class="hx-card"><h4>Hiring pipeline</h4><p class="hx-note">Active applications by status</p><div id="hxPipeline"></div></section>
+            <section class="hx-card"><h4>Applications received</h4><p class="hx-note">Per week, last 8 weeks</p><div id="hxAppsTrend"></div></section>
+            <section class="hx-card"><h4>Headcount by department</h4><p class="hx-note">All employees on record</p><div id="hxHeadcount"></div></section>
+            <section class="hx-card"><h4>Claims by status</h4><p class="hx-note">Claims and reimbursements</p><div id="hxClaims"></div></section>
+            <section class="hx-card"><h4>Recruitment source</h4><p class="hx-note">External (careers page) vs internal (current employees)</p><div id="hxSource"></div></section>
+            <section class="hx-card"><h4>ESS requests</h4><p class="hx-note">Employee self-service requests by status</p><div id="hxEss"></div></section>
+            <section class="hx-card"><h4>Leave by type</h4><p class="hx-note">Total leave days requested</p><div id="hxLeaveTypes"></div></section>
+            <section class="hx-card"><h4>Attendance</h4><p class="hx-note">Logs per day, last 14 days</p><div id="hxAttendTrend"></div></section>
+            <section class="hx-card"><h4>Onboarding</h4><p class="hx-note">New hires by onboarding status</p><div id="hxOnboarding"></div></section>
+            <section class="hx-card"><h4>Onboarding checklist</h4><p class="hx-note">Items done, across everyone in onboarding</p><div id="hxOnbItems"></div></section>
+          </div>
+
+          <section class="hx-card hx-card-wide"><h4>Scorecard</h4><p class="hx-note">How HR is doing against its targets</p><div id="hxAdminScore"></div></section>
+          <section class="hx-card hx-card-wide"><h4>Data analytics</h4><p class="hx-note">What the numbers are telling you</p><div id="hxAdminInsights"></div></section>
+
+          <h3>Onboarding Overview</h3>
+
+          <div class="dashboard-grid">
+            <div class="mini-panel">
+              <h4>HR1 Onboarding Priorities</h4>
+              <ul class="detail-list">
+                <li>Review candidate details and progress in Applications.</li>
+                <li>Update each candidate's status as they move through screening and interviews.</li>
+                <li>Mark an accepted candidate Hired. They appear in Onboarding automatically, with a checklist to complete.</li>
+              </ul>
+            </div>
+
+            <div class="mini-panel">
+              <h4>Onboarding Handoff</h4>
+              <ul class="detail-list">
+                <li>Applicants do not receive HIMS accounts while their applications are under review.</li>
+                <li>After HR marks an applicant Hired, Super Admin creates their restricted trainee account.</li>
+                <li>After training, Super Admin promotes that same account to Employee.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="staff-home" class="card module">
+          <div class="hx-head">
+            <div><h3>My Work Today</h3><p class="hx-sub">Everything waiting for HR Staff, in one place</p></div>
+            <button type="button" onclick="showModule('staff-home')">Refresh</button>
+          </div>
+          <div class="hx-kpis" id="staffKpis"></div>
+          <section class="hx-card hx-card-wide"><h4>To do</h4><p class="hx-note">Start from the top</p><div id="staffTasks"></div></section>
+          <section class="hx-card hx-card-wide"><h4>Quick actions</h4>
+            <div class="quick-actions">
+              <button type="button" onclick="showModule('leave')">Encode leave</button>
+              <button type="button" onclick="showModule('timesheet')">Encode overtime</button>
+              <button type="button" onclick="showModule('claims')">Encode claim</button>
+              <button type="button" onclick="showModule('applicants')">Add applicant</button>
+              <button type="button" onclick="showModule('interview')">Schedule interview</button>
+            </div>
+          </section>
+          <div class="hx-grid">
+            <section class="hx-card"><h4>Upcoming interviews</h4><p class="hx-note">Scheduled, soonest first</p>
+              <div class="hx-table-wrap"><table class="hx-score request-table"><thead><tr><th>Applicant</th><th>When</th><th>Interviewer</th><th>Mode</th></tr></thead><tbody id="staffInterviews"></tbody></table></div></section>
+            <section class="hx-card"><h4>Approved requests to prepare</h4><p class="hx-note">Approved by an HR Officer; mark completed when released</p>
+              <div class="hx-table-wrap"><table class="hx-score request-table"><thead><tr><th>Employee</th><th>Request</th><th>Officer note</th><th></th></tr></thead><tbody id="staffPrepare"></tbody></table></div></section>
+          </div>
+          <section class="hx-card hx-card-wide"><h4>What HR Staff can do</h4>
+            <ul class="detail-list role-scope">
+              <li>Encode leave and overtime for employees.</li>
+              <li>Encode claims with receipts. An HR Officer approves or rejects them.</li>
+              <li>Add applicants and move them through Applied, Screening and Interview. The HR Officer makes the final Hired or Rejected decision.</li>
+              <li>Schedule interviews and record their results.</li>
+              <li>Work through each new hire's onboarding checklist (documents, medical, contract, orientation, ID and uniform).</li>
+              <li>Prepare employee self-service requests after an HR Officer approves them, then mark them Completed.</li>
+              <li>View the employee directory and employee records.</li>
+            </ul>
+          </section>
+        </div>
+
+        <div id="officer-home" class="card module">
+          <div class="hx-head">
+            <div><h3>Approvals</h3><p class="hx-sub">Everything waiting for an HR Officer's decision</p></div>
+            <button type="button" onclick="showModule('officer-home')">Refresh</button>
+          </div>
+          <div class="hx-kpis" id="officerKpis"></div>
+          <div class="hx-grid">
+            <section class="hx-card"><h4>Waiting by type</h4><p class="hx-note">Items needing a decision</p><div id="officerChart"></div></section>
+            <section class="hx-card"><h4>Officer tools</h4><p class="hx-note">Reports and monitoring</p>
+              <div class="quick-actions">
+                <button type="button" onclick="showModule('dashboard-panel')">HR analytics &amp; scorecard</button>
+                <button type="button" onclick="exportReports()">Export HR report</button>
+                <button type="button" onclick="showModule('records')">Employee records</button>
+                <button type="button" onclick="showModule('auditlog')">Audit log</button>
+              </div>
+            </section>
+          </div>
+          <section class="hx-card hx-card-wide">
+            <div class="hx-head" style="margin-bottom:8px">
+              <div><h4>Approval queue</h4><p class="hx-note" style="margin:0">Approve or reject directly from here</p></div>
+              <select id="officerFilter" onchange="renderOfficerHome()" style="width:auto;margin:0">
+                <option value="All">All types</option><option value="Claim">Claims</option><option value="Overtime">Overtime</option>
+                <option value="ESS">ESS requests</option><option value="Hiring">Hiring decisions</option><option value="Hire order">Hire orders</option><option value="HR request">HR requests (HR2/HR3/HR4)</option><option value="Onboarding">Onboarding</option>
+              </select>
+            </div>
+            <div class="hx-table-wrap"><table class="hx-score request-table"><thead><tr><th>Type</th><th>Employee / Applicant</th><th>Details</th><th>Submitted</th><th>Decision</th></tr></thead>
+              <tbody id="officerQueue"></tbody></table></div>
+          </section>
+          <section class="hx-card hx-card-wide"><h4>What HR Officers can do</h4>
+            <ul class="detail-list role-scope">
+              <li>Approve or reject claims, overtime and employee self-service requests.</li>
+              <li>Make the final hiring decision (Hired or Rejected) for applicants who finished their interview.</li>
+              <li>Approve a new hire's onboarding as complete once every checklist item is done.</li>
+              <li>Publish or decline hire orders from HR3 so they appear on the careers page.</li>
+              <li>View HR analytics, the scorecard, employee records and the audit log, and export password-protected reports.</li>
+            </ul>
+          </section>
+        </div>
+
+        <div id="search" class="card module">
+          <div class="hx-head">
+            <div><h3>Search Employee</h3><p class="hx-sub">Find an employee's leave, claims, overtime and other records by ID or name</p></div>
+          </div>
+          <section class="form-card">
+            <div class="search-row">
+              <label class="field"><span>Employee ID or name</span><input id="searchInput" placeholder="e.g. EMP-001 or Juan Dela Cruz" onkeydown="if(event.key==='Enter')searchEmployee()"></label>
+              <button type="button" onclick="searchEmployee()">Search</button>
+            </div>
+          </section>
+          <div id="searchResult"></div>
+        </div>
+
+        <div id="timesheet" class="card module">
+          <div class="hx-head">
+            <div><h3>Overtime Encoding</h3><p class="hx-sub">Encode overtime for an employee. An HR Officer approves it before it reaches payroll.</p></div>
+          </div>
+          <section class="form-card">
+            <h4>New overtime request</h4>
+            <div class="form-grid">
+              <label class="field"><span>Employee ID</span><input id="otID" placeholder="e.g. EMP-001"></label>
+              <label class="field"><span>Employee name</span><input id="otName" placeholder="Full name"></label>
+              <label class="field"><span>Overtime hours</span><input id="otHours" type="number" min="0.5" step="0.5" placeholder="e.g. 2"></label>
+            </div>
+            <div class="form-actions"><button type="button" onclick="requestOT()">Submit overtime</button></div>
+          </section>
+          <section class="list-card">
+            <h4>Encoded overtime</h4>
+            <div class="records-shell"><div id="otList"></div></div>
+          </section>
+          <section class="list-card summary-shell">
+            <div class="list-head"><h4>Monthly timekeeping summary</h4><button type="button" class="secondary-action" onclick="showTimekeepingSummary()">Generate summary</button></div>
+            <div id="summaryList"></div>
+          </section>
+        </div>
+
+        <div id="leave" class="card module">
+          <div class="hx-head">
+            <div><h3>Leave Encoding</h3><p class="hx-sub">Encode a leave for an employee and check their remaining balance</p></div>
+          </div>
+          <section class="form-card">
+            <h4>New leave</h4>
+            <div class="form-grid">
+              <label class="field"><span>Employee ID</span><input id="leaveID" placeholder="e.g. EMP-001"></label>
+              <label class="field"><span>Employee name</span><input id="leaveName" placeholder="Full name"></label>
+              <label class="field"><span>Leave type</span>
+                <select id="leaveType">
+                  <option>Sick Leave</option>
+                  <option>Vacation Leave</option>
+                  <option>Emergency Leave</option>
+                </select>
+              </label>
+              <label class="field"><span>Start date</span><input type="date" id="leaveStart"></label>
+              <label class="field"><span>End date</span><input type="date" id="leaveEnd"></label>
+            </div>
+            <div class="form-actions"><button type="button" onclick="submitLeave()">Submit leave</button></div>
+          </section>
+          <div class="list-grid">
+            <section class="list-card">
+              <h4>Leave records</h4>
+              <div class="records-shell"><div id="leaveList"></div></div>
+            </section>
+            <section class="list-card">
+              <h4>Leave balances</h4>
+              <div class="records-shell"><div id="leaveBalance"></div></div>
+            </section>
+          </div>
+        </div>
+
+        <div id="claims" class="card module">
+          <div class="hx-head">
+            <div><h3>Claims and Reimbursement</h3><p class="hx-sub">Encode an employee's claim with its receipt. An HR Officer approves or rejects it.</p></div>
+          </div>
+          <section class="form-card">
+            <h4>New claim</h4>
+            <div class="form-grid">
+              <label class="field"><span>Employee ID</span><input id="claimID" placeholder="e.g. EMP-001"></label>
+              <label class="field"><span>Employee name</span><input id="claimName" placeholder="Full name"></label>
+              <label class="field"><span>Amount (₱)</span><input id="claimAmount" type="number" min="0" step="0.01" placeholder="0.00"></label>
+              <div class="field field-wide">
+                <span>Receipt</span>
+                <label class="upload-drop" for="claimReceipt">
+                  <input type="file" id="claimReceipt" accept="image/jpeg,image/png,image/webp,application/pdf">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5M8 7l4-4 4 4M12 3v12"/></svg>
+                  <strong data-upload-label>Click to attach the receipt, or drag it here</strong>
+                  <small>JPG, PNG or PDF · up to 5 MB</small>
+                </label>
+              </div>
+            </div>
+            <div class="form-actions"><button type="button" onclick="submitClaim()">Submit claim</button></div>
+          </section>
+          <section class="list-card">
+            <h4>Recorded claims</h4>
+            <div class="records-shell"><div id="claimList"></div></div>
+          </section>
+        </div>
+
+        <div id="approval" class="card module">
+          <div class="hx-head">
+            <div><h3>HR Requests</h3><p class="hx-sub">Requests sent by the HR2, HR3 and HR4 systems, and overtime encoded by HR Staff</p></div>
+            <button type="button" onclick="loadHRRequests()">Refresh</button>
+          </div>
+          <section class="hx-card hx-card-wide">
+            <h4>From HR2 / HR3 / HR4</h4>
+            <p class="hx-note">Sent by the other HR systems. Your decision is sent back to them automatically.</p>
+            <div id="partnerRequests"></div>
+          </section>
+          <section class="hx-card hx-card-wide">
+            <h4>Overtime encoded by HR Staff</h4>
+            <p class="hx-note">Encoded in HIMS and waiting for HR Officer approval</p>
+            <div class="records-shell">
+              <div id="requestList"></div>
+            </div>
+          </section>
+        </div>
+
+        <div id="filex" class="card module">
+          <div class="hx-head">
+            <div><h3>File Exchange</h3><p class="hx-sub">Send files to and receive files from the HR2, HR3 and HR4 systems</p></div>
+            <button type="button" onclick="showModule('filex')">Refresh</button>
+          </div>
+          <div id="fxRoot"></div>
+        </div>
+
+        <div id="empdir" class="card module">
+          <h3>Employee Directory</h3>
+          <p id="edMsg" role="status"></p>
+          <div class="field-stack">
+            <input id="edSearch" type="search" placeholder="Search by name, ID or department" oninput="renderEmployeeDirectory()">
+          </div>
+          <div class="action-shell"><button onclick="exportEmployeeDirectory()">Export File</button></div>
+          <div class="records-shell request-table-wrap">
+            <table class="request-table"><thead><tr><th>Employee ID</th><th>Full Name</th><th>Position</th><th>Department</th><th>Status</th><th>Date Hired</th><th>Contact</th></tr></thead>
+            <tbody id="edTable"></tbody></table>
+          </div>
+        </div>
+
+        <div id="records" class="card module">
+          <h3>Employee Records</h3>
+          <p>Open an employee's complete file: personal and employment details, leave, claims, overtime, attendance, self-service requests and internal applications. Printing or downloading a record asks for your password.</p>
+          <p id="recMsg" role="status"></p>
+          <div class="field-stack">
+            <input id="recSearch" type="search" placeholder="Search by name, ID, department or email" oninput="renderRecordList()">
+          </div>
+          <div class="records-shell request-table-wrap">
+            <table class="request-table"><thead><tr><th>Employee ID</th><th>Name</th><th>Department</th><th>Position</th><th>Status</th><th></th></tr></thead>
+            <tbody id="recList"></tbody></table>
+          </div>
+          <div id="recDetail" class="rec-detail" hidden></div>
+        </div>
+
+        <div id="tkapprovals" class="card module">
+          <h3>Timekeeping Approvals</h3>
+          <p>Approve or reject leave and overtime, verify attendance records, and review each employee's hours for the month. Decisions are saved to the database and show on the employee's portal and payslip.</p>
+          <div id="tkRoot"></div>
+        </div>
+
+        <div id="essadmin" class="card module">
+          <h3>ESS Requests</h3>
+          <p>Requests employees send from their Employee Self-Service portal. Approve or reject each one; the employee sees the result and your note in their portal.</p>
+          <div class="hx-kpis" id="essKpis"></div>
+          <div class="ess-filters">
+            <select id="essStatusFilter" onchange="renderEss()">
+              <option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Completed">Completed</option><option value="Rejected">Rejected</option><option value="All">All statuses</option>
+            </select>
+            <select id="essTypeFilter" onchange="renderEss()"><option value="All">All request types</option></select>
+            <input id="essSearch" type="search" placeholder="Search employee or details" oninput="renderEss()">
+          </div>
+          <div class="records-shell request-table-wrap">
+            <table class="request-table"><thead><tr><th>Employee</th><th>Request</th><th>Details</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="essTable"></tbody></table>
+          </div>
+        </div>
+
+        <div id="vacancies" class="card module">
+          <h3>Vacancies &mdash; Hire Orders from HR3</h3>
+          <p>Hire orders arrive from HR3. <strong>Publish</strong> an order to show it on the careers page, or <strong>Decline</strong> it.</p>
+          <div class="records-shell request-table-wrap">
+            <label class="archive-toggle" style="display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-weight:600;cursor:pointer"><input type="checkbox" id="vacShowArchived" onchange="renderVacancies()"> Show archived</label>
+            <table class="request-table"><thead><tr><th>Order</th><th>Job Title</th><th>Department</th><th>Slots</th><th>Requested By</th><th>Received</th><th>Applications</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="vacancyTable"></tbody></table>
+          </div>
+        </div>
+
+        <div id="applicants" class="card module">
+          <h3>Applications</h3>
+          <p>Move candidates through review and interview. Set accepted candidates to <strong>Hired</strong>; they remain applicants without a HIMS account until Super Admin provisions their trainee access.</p>
+          <p><strong>External</strong> applicants come from the public careers page. <strong>Internal</strong> applicants are current employees who applied from their Employee Self-Service portal.</p>
+          <div class="field-stack">
+            <input id="appName" placeholder="Applicant name">
+            <input id="appEmail" type="email" placeholder="Email">
+            <input id="appPhone" placeholder="Phone (optional)">
+            <select id="appVacancy"></select>
+          </div>
+          <div class="action-shell"><button onclick="addApplicant()">Add Applicant</button></div>
+          <div class="records-shell request-table-wrap">
+            <input id="appSearch" placeholder="Search applicants..." oninput="renderApplicants()">
+            <label class="archive-toggle" style="margin:4px 0 8px">Recruitment source
+              <select id="appSourceFilter" onchange="renderApplicants()" style="width:auto;margin:0 0 0 8px;padding:8px 12px">
+                <option value="All">All applicants</option>
+                <option value="External">External (careers page)</option>
+                <option value="Internal">Internal (current employees)</option>
+                <option value="LinkedIn">Came from LinkedIn</option>
+                <option value="JobStreet">Came from JobStreet</option>
+                <option value="Facebook">Came from Facebook</option>
+                <option value="Careers page">Came straight to the careers page</option>
+                <option value="Walk-in">Walk-in (added by HR)</option>
+              </select>
+            </label>
+            <div class="channel-summary" id="channelSummary"></div>
+            <label class="archive-toggle" style="display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-weight:600;cursor:pointer"><input type="checkbox" id="appShowArchived" onchange="renderApplicants()" style="width:auto;min-width:0;margin:0;padding:0"> Show archived applicants</label>
+            <table class="request-table"><thead><tr><th>Applicant</th><th>Source</th><th>Vacancy</th><th>Date Applied</th><th>Resume</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="applicantTable"></tbody></table>
+          </div>
+        </div>
+
+        <div id="interview" class="card module">
+          <h3>Interview</h3>
+          <div class="field-stack">
+            <select id="intApplicant"></select>
+            <input id="intDate" type="date">
+            <input id="intTime" type="time">
+            <input id="intInterviewer" placeholder="Interviewer">
+            <select id="intMode"><option>On-site</option><option>Online</option><option>Phone</option></select>
+          </div>
+          <div class="action-shell"><button onclick="addInterview()">Schedule Interview</button></div>
+          <div class="records-shell request-table-wrap">
+            <label class="archive-toggle" style="display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-weight:600;cursor:pointer"><input type="checkbox" id="intShowArchived" onchange="renderInterviews()" style="width:auto;min-width:0;margin:0;padding:0"> Show archived interviews</label>
+            <table class="request-table"><thead><tr><th>Applicant</th><th>Schedule</th><th>Interviewer</th><th>Mode</th><th>Status</th><th>Result</th><th>Actions</th></tr></thead>
+            <tbody id="interviewTable"></tbody></table>
+          </div>
+        </div>
+
+        <div id="onboarding" class="card module">
+          <h3>Onboarding</h3>
+          <p>Everyone HR marks <strong>Hired</strong> appears here automatically. HR Staff tick each item as it's done; an HR Officer approves onboarding as complete. After that, Super Admin changes the trainee's account to Employee.</p>
+          <p id="onbMsg" class="login-message" role="status"></p>
+          <div class="hx-kpis" id="onbKpis"></div>
+          <div class="ess-filters">
+            <select id="onbFilter" onchange="renderOnboarding()">
+              <option value="All">Everyone</option>
+              <option value="In progress">In progress</option>
+              <option value="Ready">Ready for approval</option>
+              <option value="Overdue">Overdue</option>
+              <option value="Completed">Completed</option>
+            </select>
+            <input id="onbSearch" type="search" placeholder="Search name, position or department" oninput="renderOnboarding()">
+          </div>
+          <label class="archive-toggle" style="display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-weight:600;cursor:pointer"><input type="checkbox" id="onbShowArchived" onchange="renderOnboarding()" style="width:auto;min-width:0;margin:0;padding:0"> Show archived</label>
+          <div id="onbList" class="onb-list"></div>
+        </div>
+
+        <div id="trainai" class="card module">
+          <h3>Train Your AI</h3>
+          <p>Teach the HR Assistant how to answer questions your staff ask. When a question contains one of your keywords, the assistant replies with your answer instead of its built-in reply.</p>
+          <div class="hx-kpis" id="aiTrainKpis"></div>
+
+          <div class="field-stack">
+            <label for="aiTrainKeywords">Keywords</label>
+            <input id="aiTrainKeywords" placeholder="For example: payday, salary date, when is pay" maxlength="300">
+            <p class="hint">Separate keywords with commas. A question only needs to contain one of them.</p>
+            <label for="aiTrainAnswer">Answer</label>
+            <textarea id="aiTrainAnswer" maxlength="1000" placeholder="For example: Salaries are released every 15th and 30th of the month."></textarea>
+          </div>
+          <div class="action-shell">
+            <button type="button" id="aiTrainSave" onclick="saveAiTraining()">Save answer</button>
+            <button type="button" class="secondary-action" onclick="cancelAiEdit()">Clear</button>
+          </div>
+
+          <div class="records-shell request-table-wrap">
+            <h4>Trained answers</h4>
+            <label class="archive-toggle" style="display:flex;align-items:center;gap:8px;margin:4px 0 8px;font-weight:600;cursor:pointer"><input type="checkbox" id="aiShowArchived" onchange="renderTrainAi()" style="width:auto;min-width:0;margin:0;padding:0"> Show archived answers</label>
+            <table class="request-table"><thead><tr><th>Keywords</th><th>Answer</th><th>Used</th><th>Actions</th></tr></thead>
+            <tbody id="aiTrainTable"></tbody></table>
+          </div>
+
+          <div class="records-shell">
+            <h4>Test the assistant</h4>
+            <input id="aiTestInput" placeholder="Type a question to see how the assistant would answer">
+            <div class="action-shell" style="margin-top:0"><button type="button" onclick="testAiTraining()">Test</button></div>
+            <div id="aiTestReply" class="ai-test-reply"></div>
+          </div>
+
+          <div class="records-shell request-table-wrap">
+            <h4>Recent questions</h4>
+            <p class="hint">Questions marked "No good answer" are the best ones to teach next.</p>
+            <label class="archive-toggle" style="display:flex;align-items:center;gap:8px;margin:4px 0 8px;font-weight:600;cursor:pointer"><input type="checkbox" id="aiLogShowArchived" onchange="renderTrainAi()" style="width:auto;min-width:0;margin:0;padding:0"> Show archived questions</label>
+            <table class="request-table"><thead><tr><th>Question</th><th>Asked</th><th>Answered with</th><th></th></tr></thead>
+            <tbody id="aiLogTable"></tbody></table>
+            <div class="action-shell"><button type="button" class="secondary-action" onclick="archiveAiLog()">Archive list</button></div>
+          </div>
+        </div>
+
+        <div id="auditlog" class="card module">
+          <h3>Audit Log</h3>
+          <div class="action-shell"><button onclick="exportAuditLog()">Export CSV</button></div>
+          <div class="records-shell request-table-wrap">
+            <input id="auditSearch" placeholder="Search audit log..." oninput="renderAudit()">
+            <table class="request-table"><thead><tr><th>Date &amp; Time</th><th>User</th><th>Module</th><th>Action</th></tr></thead>
+            <tbody id="auditTable"></tbody></table>
+          </div>
+        </div>
+
+        <section id="super-overview" class="card module super-module">
+          <div class="super-section-heading">
+            <div>
+              <span class="super-eyebrow">HIMS SYSTEM CONTROL</span>
+              <h3>System oversight</h3>
+              <p>Account access, approvals, and security activity across the HR system.</p>
+            </div>
+            <span class="system-status"><i></i> Database connected</span>
+          </div>
+          <div class="super-stats-grid">
+            <article class="super-stat"><span>Active accounts</span><strong id="superActiveAccounts">--</strong></article>
+            <article class="super-stat"><span>Disabled accounts</span><strong id="superDisabledAccounts">--</strong></article>
+            <article class="super-stat"><span>Failed logins, 24h</span><strong id="superFailedLogins">--</strong></article>
+          </div>
+          <section class="hx-card hx-card-wide sa-pending-card" style="margin-top:20px">
+            <div class="hx-head" style="margin-bottom:6px">
+              <div><h4>Pending actions</h4><p class="hx-note" style="margin:0">Things that need a Super Admin, with a shortcut to each</p></div>
+              <span id="saPendingCount" class="hx-pill hx-pill-na">Loading...</span>
+            </div>
+            <div id="saPending" class="sa-pending"></div>
+          </section>
+          <div class="hx-grid">
+            <section class="hx-card"><h4>Sign-in activity <span class="hx-src hx-src-db">Live from database</span></h4><p class="hx-note">Successful and failed sign-ins per day, last 14 days</p><div id="saSignins"></div><div id="saSigninNotes"></div></section>
+            <section class="hx-card"><h4>System health</h4><p class="hx-note">Database, server and backup status</p><div id="saHealth"></div></section>
+          </div>
+          <section class="hx-card hx-card-wide">
+            <div class="hx-head" style="margin-bottom:6px">
+              <div><h4>Database backups</h4><p class="hx-note" style="margin:0">Downloads a full copy of the database as a .sql file. Asks for your password first.</p></div>
+              <button type="button" id="saBackupButton" onclick="downloadDatabaseBackup()">Download backup</button>
+            </div>
+            <div id="saBackups"></div>
+            <p class="hx-note" style="margin-top:10px">To restore a backup: phpMyAdmin &gt; select the database &gt; Import &gt; choose the .sql file. Restoring replaces the current data.</p>
+          </section>
+          <div class="hx-head" style="margin-top:22px">
+            <div><h4 style="margin:0">Account analytics</h4><p class="hx-sub" id="hxSuperUpdated"></p></div>
+            <button type="button" onclick="refreshSuperAnalytics()">Refresh</button>
+          </div>
+          <div class="hx-grid">
+            <section class="hx-card"><h4>Accounts by role</h4><p class="hx-note">All accounts, enabled and disabled</p><div id="hxRoles"></div></section>
+            <section class="hx-card"><h4>Last sign-in</h4><p class="hx-note">Enabled accounts</p><div id="hxSignins"></div></section>
+            <section class="hx-card"><h4>Trainee progress</h4><p class="hx-note">Training status of trainee accounts</p><div id="hxTraining"></div></section>
+            <section class="hx-card"><h4>Data analytics</h4><p class="hx-note">What the numbers are telling you</p><div id="hxSuperInsights"></div></section>
+          </div>
+          <section class="hx-card hx-card-wide"><h4>Security scorecard</h4><p class="hx-note">Account health against targets</p><div id="hxSuperScore"></div></section>
+          <div class="super-table-section">
+            <div class="super-table-heading"><h4>Recent administrative activity</h4><button type="button" class="text-action" onclick="showModule('super-audit')">View audit trail</button></div>
+            <div class="request-table-wrap">
+              <table class="request-table"><thead><tr><th>Date &amp; time</th><th>Administrator</th><th>Activity</th><th>Details</th></tr></thead>
+                <tbody id="superRecentTable"><tr><td colspan="4" class="table-empty">Loading system activity...</td></tr></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section id="super-accounts" class="card module super-module">
+          <div class="super-section-heading">
+            <div>
+              <span class="super-eyebrow">IDENTITY &amp; ACCESS</span>
+              <h3>Accounts &amp; roles</h3>
+              <p>Provision staff access and review account status across HIMS.</p>
+            </div>
+          </div>
+          <form id="superAccountForm" class="super-account-form">
+            <label>Name<input id="superName" name="name" autocomplete="name" required maxlength="150"></label>
+            <label>Email<input id="superEmail" name="email" type="email" autocomplete="email" required maxlength="190"></label>
+            <label>Role<select id="superRole" name="role" required><option value="" selected disabled>Choose a role...</option><option value="HR_OFFICER">HR Officer (approvals)</option><option value="HR_STAFF">HR Staff (encoding)</option><option value="EMPLOYEE">Employee (employee portal)</option><option value="ADMIN">Admin (full HR workspace)</option><option value="TRAINEE">Trainee (hired applicant)</option></select></label>
+            <label>Department<input id="superDepartment" name="department" maxlength="100" list="dlDepartments" placeholder="Choose from the list"></label>
+            <label>Position<input id="superPosition" name="position" maxlength="100" list="dlPositions" placeholder="Choose from the list"></label>
+            <label>Temporary password<input id="superPassword" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,72}" aria-describedby="superPasswordHint" title="Use 8-72 characters with at least one letter and one number." required><small id="superPasswordHint" class="password-requirements">8-72 characters, at least one letter and one number. Avoid common passwords.</small></label>
+            <datalist id="dlDepartments"></datalist><datalist id="dlPositions"></datalist>
+            <label class="add-employee-field" id="superAddEmployeeRow" hidden><input id="superAddEmployee" name="add_employee" type="checkbox" value="1" checked> Also add this person to the Employee Directory (with employee ID, hire date and salary)</label>
+            <div id="superEmployeeFields" class="employee-account-fields">
+              <label class="employee-account-field">Contact<input id="superContact" name="contact" maxlength="50"></label>
+              <label class="employee-account-field">Hire date<input id="superHireDate" name="hire_date" type="date"></label>
+              <label class="employee-account-field">Emergency contact<input id="superEmergency" name="emergency_contact" maxlength="255"></label>
+              <label class="employee-account-field">Monthly salary<input id="superSalary" name="salary" type="number" min="0" step="0.01"></label>
+            </div>
+            <div id="traineeTrainingFields" class="trainee-account-fields" hidden>
+              <label class="trainee-applicant-field">Accepted application<select id="superAcceptedApplication" name="application_id"><option value="">Loading accepted applications...</option></select></label>
+              <p id="traineeApplicantHelp" class="trainee-notes-field">Only active applications marked Hired by HR appear here. Name and email are taken from the application; no duplicate account is created.</p>
+              <label>Training program<input name="training_program" maxlength="150" value="General onboarding"></label>
+              <label>Training start date<input name="training_start_date" type="date"></label>
+              <label>Expected end date<input name="training_end_date" type="date"></label>
+              <label>Training status<select name="training_status"><option>Not started</option><option>In progress</option><option>Completed</option></select></label>
+              <label class="trainee-notes-field">Training notes<input name="training_notes" maxlength="1000"></label>
+            </div>
+            <div class="super-form-actions"><button type="submit">Create account</button></div>
+          </form>
+          <div class="super-table-section">
+            <div class="super-table-heading"><h4>System accounts</h4><select id="superAccountFilter" aria-label="Show accounts"><option value="all">All accounts</option><option value="online">Online now</option><option value="today">Signed in today</option><option value="locked">Locked</option><option value="disabled">Disabled</option></select><input id="superAccountSearch" type="search" placeholder="Filter accounts" aria-label="Filter accounts"></div>
+            <div id="superAccountSummary" class="account-activity-summary" aria-live="polite"></div>
+            <p>Accepted applicants are managed by HR in Applications. Select a Hired applicant above to create their restricted trainee login; after training, change that same account to Employee.</p>
+            <div class="request-table-wrap">
+              <table class="request-table"><thead><tr><th>Account</th><th>Role</th><th>Department</th><th>Status</th><th>Last sign-in</th><th>Actions</th></tr></thead>
+                <tbody id="superAccountsTable"><tr><td colspan="6" class="table-empty">Loading accounts...</td></tr></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section id="super-departments" class="card module super-module">
+          <div class="super-section-heading">
+            <div>
+              <span class="super-eyebrow">ORGANIZATION</span>
+              <h3>Departments &amp; positions</h3>
+              <p>The official list used in the account forms. Keeping one spelling per department keeps the reports and graphs accurate.</p>
+            </div>
+          </div>
+          <div class="dep-new">
+            <input id="depNew" placeholder="New department, for example Radiology" maxlength="100" onkeydown="if(event.key==='Enter'){event.preventDefault();addDepartment();}">
+            <button type="button" onclick="addDepartment()">Add department</button>
+          </div>
+          <p id="depMsg" class="login-message" role="alert"></p>
+          <div id="depCleanup"></div>
+          <label class="archive-toggle" style="display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-weight:600;cursor:pointer"><input type="checkbox" id="depShowArchived" onchange="renderDepartments()" style="width:auto;min-width:0;margin:0;padding:0"> Show archived</label>
+          <div id="depList" class="dep-list"></div>
+        </section>
+
+        <section id="super-settings" class="card module super-module">
+          <div class="super-section-heading">
+            <div>
+              <span class="super-eyebrow">CONFIGURATION</span>
+              <h3>System settings</h3>
+              <p>Change how HIMS works without editing code. Changes apply to everyone after they refresh.</p>
+            </div>
+          </div>
+          <div id="setForm"></div>
+          <p id="setMsg" class="login-message" role="alert"></p>
+          <div class="profile-actions set-actions">
+            <button type="button" onclick="saveHimsSettings()">Save settings</button>
+            <button type="button" class="secondary-action" onclick="resetHimsSettings()">Reset to defaults</button>
+          </div>
+        </section>
+
+        <section id="super-announcements" class="card module super-module">
+          <div class="super-section-heading">
+            <div>
+              <span class="super-eyebrow">COMMUNICATION</span>
+              <h3>Announcements</h3>
+              <p>Post notices to Admins, Employees, or everyone.</p>
+            </div>
+          </div>
+          <div class="super-table-section">
+            <div class="super-table-heading"><h4>New announcement</h4></div>
+            <input id="annTitle" placeholder="Title (for example: Holiday schedule)" maxlength="150">
+            <textarea id="annBody" rows="3" maxlength="1000" placeholder="Message (optional)" style="display:block;width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(170,255,228,.18);border-radius:14px;color:#ebfff6;padding:14px 16px;margin:8px 0 14px;font:inherit;resize:vertical"></textarea>
+            <select id="annAudience">
+              <option value="all">Everyone (Admins, Employees, and Trainees)</option>
+              <option value="admin">Admins only</option>
+              <option value="employee">Employees only</option>
+              <option value="trainee">Trainees only</option>
+            </select>
+            <button type="button" onclick="postSuperAnnouncement()">Post announcement</button>
+          </div>
+          <div class="super-table-section">
+            <div class="super-table-heading"><h4>Posted announcements</h4></div>
+            <div class="request-table-wrap">
+              <table class="request-table"><thead><tr><th>Date</th><th>Title</th><th>Audience</th><th>Posted by</th><th>Actions</th></tr></thead>
+                <tbody id="superAnnouncementsTable"><tr><td colspan="5" class="table-empty">Loading announcements...</td></tr></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section id="super-audit" class="card module super-module">
+          <div class="super-section-heading">
+            <div>
+              <span class="super-eyebrow">SECURITY &amp; COMPLIANCE</span>
+              <h3>Security audit</h3>
+              <p>Server-recorded sign-ins, failed attempts, account changes, and source addresses.</p>
+            </div>
+            <button type="button" onclick="exportSuperAudit()">Export CSV</button>
+          </div>
+          <div class="super-table-section">
+            <div class="super-table-heading"><h4>Administrative events</h4><input id="superAuditSearch" type="search" placeholder="Search activity" aria-label="Search audit activity"></div>
+            <div class="request-table-wrap">
+              <table class="request-table"><thead><tr><th>Date &amp; time</th><th>Administrator</th><th>Action</th><th>Details</th><th>Source</th></tr></thead>
+                <tbody id="superAuditTable"><tr><td colspan="5" class="table-empty">Loading audit history...</td></tr></tbody></table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="supportPanel" class="modal-backdrop" hidden>
+  <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="supportTitle">
+    <div class="modal-header">
+      <div>
+        <span class="modal-eyebrow">Help Center</span>
+        <h2 id="supportTitle">How can we help?</h2>
+      </div>
+      <button class="modal-close" type="button" aria-label="Close support panel" onclick="closeAllPanels()">&times;</button>
+    </div>
+    <div class="support-grid">
+      <div class="support-card">
+        <strong>Common fixes</strong>
+        <p>Refresh the page after changing records. Use Export Report to download the latest saved data.</p>
+      </div>
+      <div class="support-card">
+        <strong>System support</strong>
+        <p>HR Operations<br><a href="mailto:hr1supports@gmail.com">hr1supports@gmail.com</a><br>Available Monday to Friday, 8:00 AM to 5:00 PM</p>
+      </div>
+    </div>
+    <form id="supportForm" class="support-form">
+      <label for="supportTopic">Topic</label>
+      <select id="supportTopic">
+        <option>Login problem</option>
+        <option>Reports and downloads</option>
+        <option>Attendance or leave record</option>
+        <option>Other system issue</option>
+      </select>
+      <label for="supportDetails">Details</label>
+      <textarea id="supportDetails" rows="3" maxlength="2000" placeholder="Describe the issue" required></textarea>
+      <button type="submit">Send support request</button>
+    </form>
+  </section>
+</div>
+
+<div id="resumePanel" class="modal-backdrop" hidden>
+  <section class="modal-panel" style="width:min(920px,96vw)" role="dialog" aria-modal="true" aria-labelledby="resumeTitle">
+    <div class="modal-header">
+      <div>
+        <span class="modal-eyebrow" id="resumeMeta">Application</span>
+        <h2 id="resumeTitle">Resume</h2>
+      </div>
+      <button class="modal-close" type="button" aria-label="Close resume viewer" onclick="closeResume()">&times;</button>
+    </div>
+    <div id="resumeBody" style="min-height:200px"></div>
+    <div class="profile-actions">
+      <button type="button" id="resumeDownload">Download</button>
+      <button type="button" class="secondary-action" onclick="closeResume()">Close</button>
+    </div>
+  </section>
+</div>
+
+<div id="profilePanel" class="modal-backdrop" hidden>
+  <section class="modal-panel profile-panel" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+    <div class="modal-header">
+      <div>
+        <span class="modal-eyebrow">Account</span>
+        <h2 id="profileTitle">Administrator profile</h2>
+      </div>
+      <button class="modal-close" type="button" aria-label="Close profile panel" onclick="closeAllPanels()">&times;</button>
+    </div>
+    <div class="profile-summary">
+      <div class="profile-avatar">AD</div>
+      <div>
+        <strong id="profileEmail">hr1admin@hospital.com</strong>
+        <span>HIMS System Administrator</span>
+      </div>
+    </div>
+    <div class="profile-details">
+      <div><span>Role</span><strong>HIMS Administrator</strong></div>
+      <div><span>Access</span><strong>All HIMS modules</strong></div>
+      <div><span>Session</span><strong id="profileSession">Active now</strong></div>
+    </div>
+    <div class="profile-actions">
+      <button type="button" onclick="closeAllPanels(); forgotPassword()">Change password</button>
+      <button type="button" class="secondary-action" onclick="closeAllPanels(); logout()">Log out</button>
+    </div>
+  </section>
+</div>
+
+<div id="superPasswordResetDialog" class="modal-backdrop" hidden>
+  <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="superResetTitle">
+    <div class="modal-header">
+      <div>
+        <span class="modal-eyebrow">Account security</span>
+        <h2 id="superResetTitle">Reset password</h2>
+        <p id="superResetAccount" class="modal-supporting-text"></p>
+      </div>
+      <button class="modal-close" type="button" aria-label="Close password reset" onclick="closeSuperPasswordReset()">&times;</button>
+    </div>
+    <form id="superPasswordResetForm" class="support-form">
+      <input id="superResetAccountId" type="hidden">
+      <label for="superResetPassword">New password</label>
+      <input id="superResetPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,72}" aria-describedby="superResetPasswordHint" title="Use 8-72 characters with at least one letter and one number." required>
+      <small id="superResetPasswordHint" class="password-requirements">8-72 characters, at least one letter and one number. Avoid common passwords.</small>
+      <p id="superResetError" class="login-message" role="alert" aria-live="polite"></p>
+      <div class="profile-actions">
+        <button type="submit">Update password</button>
+        <button type="button" class="secondary-action" onclick="closeSuperPasswordReset()">Cancel</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<div id="traineeTrainingDialog" class="modal-backdrop" hidden>
+  <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="traineeTrainingTitle">
+    <div class="modal-header">
+      <div>
+        <span class="modal-eyebrow">Trainee account</span>
+        <h2 id="traineeTrainingTitle">Update training</h2>
+        <p id="traineeTrainingAccount" class="modal-supporting-text"></p>
+      </div>
+      <button class="modal-close" type="button" aria-label="Close training editor" onclick="closeTraineeTraining()">×</button>
+    </div>
+    <form id="traineeTrainingForm" class="support-form">
+      <input name="id" id="traineeTrainingAccountId" type="hidden">
+      <label for="traineeTrainingProgram">Program</label>
+      <input id="traineeTrainingProgram" name="training_program" maxlength="150" required>
+      <label for="traineeTrainingStart">Start date</label>
+      <input id="traineeTrainingStart" name="training_start_date" type="date">
+      <label for="traineeTrainingEnd">Expected end date</label>
+      <input id="traineeTrainingEnd" name="training_end_date" type="date">
+      <label for="traineeTrainingStatus">Status</label>
+      <select id="traineeTrainingStatus" name="training_status"><option>Not started</option><option>In progress</option><option>Completed</option></select>
+      <label for="traineeTrainingNotes">Notes</label>
+      <textarea id="traineeTrainingNotes" name="training_notes" maxlength="1000" rows="3"></textarea>
+      <p id="traineeTrainingError" class="login-message" role="alert" aria-live="polite"></p>
+      <div class="profile-actions">
+        <button type="submit">Save training</button>
+        <button type="button" class="secondary-action" onclick="closeTraineeTraining()">Cancel</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<button id="floatingAiButton" class="floating-ai-button" type="button" aria-label="Open AI Assistant">
+  <span class="floating-ai-icon">✦</span>
+  <span class="floating-ai-text">AI</span>
+</button>
+
+<div id="aiChatWidget" class="ai-chat-widget" hidden>
+  <div class="ai-chat-header">
+    <div>
+      <span class="modal-eyebrow">AI Support</span>
+      <h3>HR Assistant</h3>
+    </div>
+    <button class="modal-close" type="button" aria-label="Close AI assistant" onclick="toggleAiChat()">&times;</button>
+  </div>
+
+  <div id="aiChatMessages" class="ai-chat-messages" aria-live="polite">
+    <div class="ai-message ai-message-bot">
+      <strong>AI:</strong>
+      <span>Hello! I can help with attendance, requests, leave, claims, and quick HR insights. Ask me anything.</span>
+    </div>
+  </div>
+
+  <div class="ai-suggestions" id="aiSuggestions">
+    <button type="button" data-prompt="Attendance summary">Attendance summary</button>
+    <button type="button" data-prompt="Leave balance">Leave balance</button>
+    <button type="button" data-prompt="Ongoing HR requests">HR requests</button>
+  </div>
+
+  <form id="aiChatForm" class="ai-chat-form">
+    <input id="aiChatInput" type="text" placeholder="Ask the HR AI..." autocomplete="off">
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<script src="hims-shared-sync.js"></script>
+<script src="script.js"></script>
+<script src="super-admin.js"></script>
+<script src="admin-modules.js"></script>
+<script src="employee-directory.js"></script>
+<script src="hims-assistant.js"></script>
+<script src="hims-security.js"></script>
+<script src="hims-timekeeping.js"></script>
+<script>
+// HIMS dashboard helpers: bar graphs, line graphs, KPI tiles, scorecards and insight lists.
+// Plain HTML/SVG with no external library, so charts work offline on the XAMPP demo machine.
+(function () {
+  const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const num = (n) => Number(n || 0).toLocaleString();
+
+  function empty(el, message) {
+    el.innerHTML = `<p class="hx-empty">${esc(message || "No data yet.")}</p>`;
+  }
+
+  // Horizontal bar graph. rows: [{ label, value, max?, text?, tone? }]
+  // tone: "main" | "good" | "watch" | "bad" | "muted"
+  function bars(el, rows, opt = {}) {
+    if (!el) return;
+    const list = (rows || []).filter((r) => r && r.label != null);
+    const shared = opt.max || Math.max(0, ...list.map((r) => Number(r.value) || 0));
+    const hasPerRowMax = list.some((r) => r.max);
+    if (!list.length || (!hasPerRowMax && shared <= 0)) return empty(el, opt.empty);
+    const format = opt.format || num;
+    el.innerHTML = `<div class="hx-bars">${list.map((r) => {
+      const v = Number(r.value) || 0;
+      const max = Number(r.max) || shared || 1;
+      const pct = v <= 0 ? 0 : Math.max(2, Math.min(100, (v / max) * 100));
+      const text = r.text != null ? r.text : format(v);
+      return `<div class="hx-bar-row" title="${esc(r.label)}: ${esc(text)}">
+        <span class="hx-bar-label">${esc(r.label)}</span>
+        <span class="hx-bar-track"><i class="hx-fill hx-tone-${esc(r.tone || "main")}" style="width:${pct.toFixed(1)}%"></i></span>
+        <span class="hx-bar-value">${esc(text)}</span>
+      </div>`;
+    }).join("")}</div>`;
+  }
+
+  // Line graph with a shaded area. points: [{ label, value }]
+  function line(el, points, opt = {}) {
+    if (!el) return;
+    const list = points || [];
+    const max = Math.max(0, ...list.map((p) => Number(p.value) || 0));
+    if (list.length < 2 || max <= 0) return empty(el, opt.empty);
+    const top = opt.max || Math.ceil(max * 1.15) || 1;
+    const W = 600, H = 180;
+    const x = (i) => (i / (list.length - 1)) * W;
+    const y = (v) => H - (Math.max(0, v) / top) * H;
+    const coords = list.map((p, i) => `${x(i).toFixed(1)},${y(Number(p.value) || 0).toFixed(1)}`);
+    const format = opt.format || num;
+    const showEvery = list.length > 8 ? Math.ceil(list.length / 6) : 1;
+    el.innerHTML = `<div class="hx-line">
+      <div class="hx-line-scale"><span>${esc(format(top))}</span><span>${esc(format(top / 2))}</span><span>0</span></div>
+      <div class="hx-line-plot">
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(opt.label || "Trend")}">
+          <line x1="0" y1="${H / 2}" x2="${W}" y2="${H / 2}" class="hx-grid-line"/>
+          <line x1="0" y1="${H - 0.5}" x2="${W}" y2="${H - 0.5}" class="hx-grid-line"/>
+          <polygon points="0,${H} ${coords.join(" ")} ${W},${H}" class="hx-area"/>
+          <polyline points="${coords.join(" ")}" class="hx-stroke"/>
+        </svg>
+        <div class="hx-line-hits">${list.map((p) => `<span title="${esc(p.label)}: ${esc(format(p.value))}"><i style="bottom:${((Math.max(0, Number(p.value) || 0) / top) * 100).toFixed(1)}%"></i></span>`).join("")}</div>
+        <div class="hx-line-labels">${list.map((p, i) => `<span>${i % showEvery === 0 || i === list.length - 1 ? esc(p.label) : ""}</span>`).join("")}</div>
+      </div>
+    </div>`;
+  }
+
+  // Stacked column chart. points: [{ label, values: [a, b] }], series: [{ name, tone }]
+  function columns(el, points, series, opt = {}) {
+    if (!el) return;
+    const totals = (points || []).map((p) => p.values.reduce((t, v) => t + (Number(v) || 0), 0));
+    const max = Math.max(0, ...totals);
+    if (!points || !points.length || max <= 0) return empty(el, opt.empty);
+    const top = Math.ceil(max * 1.1) || 1;
+    const showEvery = points.length > 10 ? 2 : 1;
+    el.innerHTML = `<div class="hx-cols-legend">${series.map((s) => `<span><i class="hx-fill hx-tone-${esc(s.tone)}"></i>${esc(s.name)}</span>`).join("")}</div>
+      <div class="hx-cols" style="--n:${points.length}">
+        ${points.map((p, i) => `<div class="hx-col" title="${esc(p.label)}: ${series.map((s, k) => `${s.name} ${num(p.values[k])}`).join(", ")}">
+          <div class="hx-col-stack">${p.values.map((v, k) => (Number(v) > 0 ? `<i class="hx-fill hx-tone-${esc(series[k].tone)}" style="height:${((Number(v) / top) * 100).toFixed(1)}%"></i>` : "")).join("")}</div>
+          <span class="hx-col-label">${i % showEvery === 0 || i === points.length - 1 ? esc(p.label) : ""}</span>
+        </div>`).join("")}
+      </div>`;
+  }
+
+  // KPI tiles. items: [{ label, value, sub?, tone? }]
+  function kpis(el, items) {
+    if (!el) return;
+    el.innerHTML = items.map((k) => `<article class="hx-kpi hx-kpi-${esc(k.tone || "main")}">
+      <span>${esc(k.label)}</span><strong>${esc(k.value)}</strong>${k.sub ? `<small>${esc(k.sub)}</small>` : ""}
+    </article>`).join("");
+  }
+
+  // Compare an actual value with a target. Returns "good" | "watch" | "bad".
+  // higher = true when a bigger number is better. margin = how far off still counts as "watch".
+  function grade(actual, target, higher = true, margin = 0.15) {
+    if (actual == null || Number.isNaN(Number(actual))) return "na";
+    const a = Number(actual), t = Number(target);
+    if (higher ? a >= t : a <= t) return "good";
+    const slack = Math.abs(t) * margin || margin;
+    return (higher ? a >= t - slack : a <= t + slack) ? "watch" : "bad";
+  }
+  const STATUS_TEXT = { good: "On track", watch: "Needs attention", bad: "Off track", na: "No data" };
+
+  // Scorecard table. rows: [{ metric, actual, target, status, note? }]
+  function scorecard(el, rows, opt = {}) {
+    if (!el) return;
+    if (!rows.length) return empty(el, opt.empty);
+    const counts = rows.reduce((c, r) => ((c[r.status] = (c[r.status] || 0) + 1), c), {});
+    const scored = rows.filter((r) => r.status !== "na");
+    const score = scored.length ? Math.round((scored.reduce((t, r) => t + (r.status === "good" ? 1 : r.status === "watch" ? 0.5 : 0), 0) / scored.length) * 100) : null;
+    el.innerHTML = `<div class="hx-score-summary">
+        <div class="hx-score-total"><strong>${score == null ? "--" : score + "%"}</strong><span>Overall score</span></div>
+        <div class="hx-score-counts">
+          <span class="hx-pill hx-pill-good">${counts.good || 0} on track</span>
+          <span class="hx-pill hx-pill-watch">${counts.watch || 0} need attention</span>
+          <span class="hx-pill hx-pill-bad">${counts.bad || 0} off track</span>
+        </div>
+      </div>
+      <div class="hx-table-wrap"><table class="hx-score ${esc(opt.tableClass || "")}">
+        <thead><tr><th>Metric</th><th>Actual</th><th>Target</th><th>Status</th></tr></thead>
+        <tbody>${rows.map((r) => `<tr>
+          <td><strong>${esc(r.metric)}</strong>${r.note ? `<small>${esc(r.note)}</small>` : ""}</td>
+          <td>${esc(r.actual)}</td><td>${esc(r.target)}</td>
+          <td><span class="hx-pill hx-pill-${esc(r.status)}">${esc(STATUS_TEXT[r.status] || r.status)}</span></td>
+        </tr>`).join("")}</tbody>
+      </table></div>`;
+  }
+
+  // Insight list. items: strings or { text, tone }
+  function insights(el, items) {
+    if (!el) return;
+    const list = (items || []).filter(Boolean);
+    if (!list.length) return empty(el, "Not enough data for insights yet.");
+    el.innerHTML = `<ul class="hx-insights">${list.map((i) => {
+      const item = typeof i === "string" ? { text: i } : i;
+      return `<li class="hx-insight-${esc(item.tone || "main")}">${esc(item.text)}</li>`;
+    }).join("")}</ul>`;
+  }
+
+  // Helpers for dates and grouping
+  function parseDate(value) {
+    if (!value) return null;
+    if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+    const text = String(value).trim();
+    const iso = /^\d{4}-\d{2}-\d{2}( |T|$)/.test(text) ? text.replace(" ", "T") : text;
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  function countBy(list, key) {
+    return list.reduce((acc, item) => {
+      const k = (typeof key === "function" ? key(item) : item[key]) || "Unspecified";
+      acc[k] = (acc[k] || 0) + 1;
+      return acc;
+    }, {});
+  }
+  function weeklySeries(dates, weeks = 8, now = new Date()) {
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - start.getDay() - (weeks - 1) * 7); // Sunday, `weeks` weeks back
+    const buckets = Array.from({ length: weeks }, (_, i) => {
+      const from = new Date(start); from.setDate(start.getDate() + i * 7);
+      return { from, value: 0, label: from.toLocaleDateString(undefined, { month: "short", day: "numeric" }) };
+    });
+    dates.forEach((d) => {
+      if (!d) return;
+      const idx = Math.floor((d - start) / (7 * 864e5));
+      if (idx >= 0 && idx < weeks) buckets[idx].value += 1;
+    });
+    return buckets;
+  }
+  const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 100) : null);
+
+  window.HimsCharts = { bars, line, columns, kpis, scorecard, insights, grade, parseDate, countBy, weeklySeries, pct, esc, num };
+})();
+
+</script>
+<script>
+// System Settings and Departments & Positions (Super Admin), plus sidebar icons, section headings and Log out.
+// Settings are loaded after sign-in and used across HIMS through window.himsSetting(key).
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const toast = (m) => (window.showWarningToast || alert)(m);
+  const role = () => { try { return (JSON.parse(localStorage.getItem("currentUser") || "null") || {}).role || ""; } catch (e) { return ""; } };
+
+  // ---------------------------------------------------------------------
+  // Settings available everywhere
+  // ---------------------------------------------------------------------
+  const DEFAULTS = {
+    hospital_name: "Hospital System", hospital_logo: "", leave_vacation: "15", leave_sick: "10", leave_emergency: "5",
+    lock_max_failures: "5", lock_minutes: "5", onboarding_overdue_days: "30",
+    target_hire_rate: "10", target_reached_interview: "30", target_interviews_completed: "80",
+    target_pending_claims: "5", target_pending_ess: "5", target_active_employees: "90",
+  };
+  window.HIMS_SETTINGS = Object.assign({}, DEFAULTS);
+  window.himsSetting = (key) => (window.HIMS_SETTINGS[key] != null ? window.HIMS_SETTINGS[key] : DEFAULTS[key]);
+  window.himsNumber = (key) => Number(window.himsSetting(key)) || 0;
+
+  function applyBrand(name, logo) {
+    document.querySelectorAll(".brand-text span, .auth-brand .brand-text span").forEach((el) => {
+      if (!el.closest(".portal-page") || el.textContent !== "Employee Self-Service") el.textContent = name || DEFAULTS.hospital_name;
+    });
+    document.querySelectorAll(".brand-mark").forEach((el) => {
+      if (logo) { el.classList.add("has-logo"); el.innerHTML = `<img src="${esc(logo)}" alt="">`; }
+      else if (el.classList.contains("has-logo")) { el.classList.remove("has-logo"); el.textContent = "HIMS"; }
+    });
+  }
+  async function loadPublicBrand() {
+    try { const r = await apiRequest("public-settings"); applyBrand(r.hospitalName, r.hospitalLogo); } catch (e) { /* defaults */ }
+  }
+  async function loadSettings() {
+    try {
+      const r = await apiRequest("settings");
+      window.HIMS_SETTINGS = Object.assign({}, DEFAULTS, r.settings || {});
+      applyBrand(window.HIMS_SETTINGS.hospital_name, window.HIMS_SETTINGS.hospital_logo);
+    } catch (e) { /* signed out or not installed: defaults */ }
+    return window.HIMS_SETTINGS;
+  }
+  window.loadHimsSettings = loadSettings;
+  document.addEventListener("DOMContentLoaded", loadPublicBrand);
+
+  // ---------------------------------------------------------------------
+  // Settings page
+  // ---------------------------------------------------------------------
+  const FIELDS = [
+    { group: "Hospital", items: [
+      { key: "hospital_name", label: "Hospital name", type: "text", hint: "Shown under HIMS in the sidebar and on the login page." },
+      { key: "hospital_logo", label: "Logo", type: "logo", hint: "PNG, JPG or WEBP, square, under 180 KB. Replaces the green HIMS badge." },
+    ] },
+    { group: "Leave allowance per year (days)", items: [
+      { key: "leave_vacation", label: "Vacation leave", type: "number" },
+      { key: "leave_sick", label: "Sick leave", type: "number" },
+      { key: "leave_emergency", label: "Emergency leave", type: "number" },
+    ] },
+    { group: "Sign-in security", items: [
+      { key: "lock_max_failures", label: "Failed sign-ins before lock", type: "number", hint: "3 to 20" },
+      { key: "lock_minutes", label: "Lock time (minutes)", type: "number", hint: "Also the time window the failures are counted in." },
+    ] },
+    { group: "Onboarding", items: [
+      { key: "onboarding_overdue_days", label: "Overdue after (days)", type: "number", hint: "New hires still onboarding after this many days are marked Overdue." },
+    ] },
+    { group: "HR scorecard targets", items: [
+      { key: "target_hire_rate", label: "Hire rate at least (%)", type: "number" },
+      { key: "target_reached_interview", label: "Applicants reaching interview at least (%)", type: "number" },
+      { key: "target_interviews_completed", label: "Interviews completed at least (%)", type: "number" },
+      { key: "target_active_employees", label: "Active workforce at least (%)", type: "number" },
+      { key: "target_pending_claims", label: "Pending claims at most", type: "number" },
+      { key: "target_pending_ess", label: "Pending ESS requests at most", type: "number" },
+    ] },
+  ];
+  let pendingLogo = null;
+
+  async function renderSettings() {
+    if (!$("setForm")) return;
+    $("setMsg").textContent = "";
+    await loadSettings();
+    const s = window.HIMS_SETTINGS;
+    pendingLogo = s.hospital_logo || "";
+    $("setForm").innerHTML = FIELDS.map((g) => `<fieldset class="set-group"><legend>${esc(g.group)}</legend><div class="set-grid">
+      ${g.items.map((f) => f.type === "logo" ? `<div class="set-field set-logo">
+          <span>${esc(f.label)}</span>
+          <div class="set-logo-row"><div class="brand-mark set-logo-preview" id="setLogoPreview">${s.hospital_logo ? `<img src="${esc(s.hospital_logo)}" alt="">` : "HIMS"}</div>
+          <input type="file" id="setLogoFile" accept="image/png,image/jpeg,image/webp,image/gif">
+          <button type="button" class="secondary-action" onclick="clearHimsLogo()">Use default</button></div>
+          ${f.hint ? `<small>${esc(f.hint)}</small>` : ""}</div>`
+        : `<label class="set-field"><span>${esc(f.label)}</span><input id="set_${f.key}" type="${f.type}" ${f.type === "number" ? 'min="0" step="1"' : 'maxlength="120"'} value="${esc(s[f.key])}">
+          <small>${esc(f.hint || "")}${s[f.key] !== DEFAULTS[f.key] && f.type !== "logo" ? `${f.hint ? " " : ""}Default: ${esc(DEFAULTS[f.key])}` : ""}</small></label>`).join("")}
+    </div></fieldset>`).join("");
+    $("setLogoFile").addEventListener("change", (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      if (file.size > 180 * 1024) { toast("The logo is larger than 180 KB. Choose a smaller image."); e.target.value = ""; return; }
+      const reader = new FileReader();
+      reader.onload = () => { pendingLogo = reader.result; $("setLogoPreview").innerHTML = `<img src="${esc(pendingLogo)}" alt="">`; };
+      reader.readAsDataURL(file);
+    });
+  }
+  window.clearHimsLogo = () => { pendingLogo = ""; $("setLogoPreview").textContent = "HIMS"; $("setLogoFile").value = ""; };
+
+  window.saveHimsSettings = async function () {
+    const values = { hospital_logo: pendingLogo || "" };
+    FIELDS.forEach((g) => g.items.forEach((f) => { if (f.type !== "logo") values[f.key] = $("set_" + f.key).value.trim(); }));
+    try {
+      await apiRequest("settings", { method: "POST", body: JSON.stringify({ settings: values }) });
+      showSuccessToast("Settings saved.");
+      $("setMsg").textContent = "";
+      await renderSettings();
+    } catch (e) { $("setMsg").textContent = e.message; }
+  };
+  window.resetHimsSettings = function () {
+    if (!confirm("Put every setting back to its default value? Click Save to keep the change.")) return;
+    FIELDS.forEach((g) => g.items.forEach((f) => { if (f.type !== "logo") $("set_" + f.key).value = DEFAULTS[f.key]; }));
+    clearHimsLogo();
+  };
+
+  // ---------------------------------------------------------------------
+  // Departments & Positions page
+  // ---------------------------------------------------------------------
+  let DEPTS = [], openDept = null;
+  async function loadDepartments() {
+    const r = await apiRequest("departments");
+    DEPTS = r.records || [];
+    window.HIMS_DEPARTMENTS = DEPTS;
+    fillDatalists();
+    return r;
+  }
+  window.loadHimsDepartments = () => loadDepartments().catch(() => null);
+
+  function fillDatalists() {
+    const active = DEPTS.filter((d) => !d.archived);
+    if ($("dlDepartments")) $("dlDepartments").innerHTML = active.map((d) => `<option value="${esc(d.name)}">`).join("");
+    if ($("dlPositions")) {
+      const chosen = (($("superDepartment") && $("superDepartment").value) || "").toLowerCase();
+      const list = active.filter((d) => !chosen || d.name.toLowerCase() === chosen).flatMap((d) => d.positions.filter((p) => !Number(p.archived)).map((p) => p.title));
+      $("dlPositions").innerHTML = [...new Set(list)].map((t) => `<option value="${esc(t)}">`).join("");
+    }
+  }
+
+  async function renderDepartments() {
+    if (!$("depList")) return;
+    $("depMsg").textContent = "";
+    let r;
+    try { r = await loadDepartments(); } catch (e) { $("depList").innerHTML = `<p class="hx-empty">${esc(e.message)}</p>`; return; }
+    const showArchived = $("depShowArchived").checked;
+    const rows = DEPTS.filter((d) => !!d.archived === showArchived);
+    const fix = r.needsCleanup || [], unlisted = r.unlisted || [];
+    $("depCleanup").innerHTML = (fix.length || unlisted.length) ? `<div class="dep-warn">
+        ${fix.length ? `<p><strong>${fix.length} spelling(s) differ from the official name:</strong> ${fix.map((f) => `"${esc(f.spelling)}" &rarr; "${esc(f.official)}"`).join(", ")}.
+          <button type="button" onclick="cleanupDepartments()">Fix spelling everywhere</button></p>` : ""}
+        ${unlisted.length ? `<p><strong>Used in records but not in the list:</strong> ${unlisted.map((u) => `<button type="button" class="secondary-action dep-chip" onclick="addDepartment('${esc(u.replace(/'/g, ""))}')">+ ${esc(u)}</button>`).join(" ")}</p>` : ""}
+      </div>` : "";
+    $("depList").innerHTML = rows.length ? rows.map((d) => {
+      const open = openDept === d.id;
+      const positions = d.positions.filter((p) => showArchived || !Number(p.archived));
+      return `<article class="dep-card${open ? " is-open" : ""}">
+        <div class="dep-head">
+          <button type="button" class="dep-name" onclick="toggleDepartment(${d.id})" aria-expanded="${open}"><strong>${esc(d.name)}</strong>
+            <small>${d.positions.filter((p) => !Number(p.archived)).length} position(s) · ${d.people} person(s)</small></button>
+          <span class="dep-actions">
+            ${d.archived ? `<button type="button" onclick="departmentAction('department-restore', ${d.id})">Restore</button>`
+              : `<button type="button" class="secondary-action" onclick="renameDepartment(${d.id})">Rename</button>
+                 <button type="button" class="secondary-action" onclick="departmentAction('department-archive', ${d.id})">Archive</button>`}
+          </span>
+        </div>
+        ${open ? `<div class="dep-body">
+          <ul class="dep-positions">${positions.length ? positions.map((p) => `<li class="${Number(p.archived) ? "is-archived" : ""}"><span>${esc(p.title)}</span>
+            <button type="button" class="secondary-action" onclick="departmentAction('${Number(p.archived) ? "position-restore" : "position-archive"}', ${p.id})">${Number(p.archived) ? "Restore" : "Archive"}</button></li>`).join("")
+            : '<li class="dep-none">No positions yet.</li>'}</ul>
+          ${d.archived ? "" : `<div class="dep-add"><input id="posNew${d.id}" placeholder="New position, for example Staff Nurse" maxlength="100">
+            <button type="button" onclick="addPosition(${d.id})">Add position</button></div>`}
+        </div>` : ""}
+      </article>`;
+    }).join("") : `<p class="hx-empty">${showArchived ? "No archived departments." : "No departments yet. Add your first one above."}</p>`;
+  }
+
+  const depSend = async (body, okMessage) => {
+    try { const r = await apiRequest("departments", { method: "POST", body: JSON.stringify(body) }); showSuccessToast(r.message || okMessage); }
+    catch (e) { $("depMsg").textContent = e.message; return false; }
+    await renderDepartments(); return true;
+  };
+  window.toggleDepartment = (id) => { openDept = openDept === id ? null : id; renderDepartments(); };
+  window.addDepartment = async (preset) => {
+    const name = (preset || $("depNew").value).trim(); if (!name) return;
+    if (await depSend({ action: "department-add", name }, "Department added.")) $("depNew").value = "";
+  };
+  window.renameDepartment = (id) => {
+    const d = DEPTS.find((x) => x.id === id); if (!d) return;
+    const name = prompt(`Rename "${d.name}" to:\n(Every employee, account and vacancy using it is updated too.)`, d.name);
+    if (name && name.trim() && name.trim() !== d.name) depSend({ action: "department-rename", id, name: name.trim() }, "Department renamed.");
+  };
+  window.departmentAction = (action, id) => {
+    if (action === "department-archive" && !confirm("Archive this department? It disappears from the dropdowns, but existing records keep it.")) return;
+    depSend({ action, id }, "Saved.");
+  };
+  window.addPosition = (departmentId) => {
+    const input = $("posNew" + departmentId); const name = input.value.trim(); if (!name) return;
+    depSend({ action: "position-add", departmentId, name }, "Position added.");
+  };
+  window.cleanupDepartments = () => {
+    if (!confirm("Change every record to use the official department spelling?")) return;
+    depSend({ action: "cleanup" }, "Spelling fixed.");
+  };
+
+  // ---------------------------------------------------------------------
+  // Sidebar: icons, section headings, Log out
+  // ---------------------------------------------------------------------
+  const P = {
+    grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
+    bell: "M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0",
+    users: "M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 19v-1a4 4 0 0 0-3-3.9M16 2.1a4 4 0 0 1 0 7.8",
+    shield: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
+    building: "M4 21V4h10v17M14 9h6v12M7 8h2M7 12h2M7 16h2M17 13h1M17 17h1",
+    gear: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1",
+    receipt: "M6 2h12v20l-3-2-3 2-3-2-3 2zM9 7h6M9 11h6M9 15h4",
+    search: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16M21 21l-4.3-4.3",
+    book: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5",
+    folder: "M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
+    inbox: "M22 12h-6l-2 3h-4l-2-3H2M5.5 5h13l3.5 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z",
+    swap: "M7 7h13l-4-4M17 17H4l4 4",
+    share: "M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5M8 7l4-4 4 4M12 3v12",
+    briefcase: "M3 8h18v12H3zM8 8V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3M3 13h18",
+    file: "M14 3H6v18h12V7zM14 3v4h4M9 13h6M9 17h6",
+    mic: "M8 10a4 4 0 0 0 8 0V6a4 4 0 0 0-8 0zM5 10a7 7 0 0 0 14 0M12 17v4",
+    check: "M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9",
+    spark: "M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z",
+    list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
+    clock: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M12 7v5l3 2",
+    calendar: "M4 5h16v16H4zM4 9h16M8 3v4M16 3v4",
+    timer: "M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16M12 9v4M9 2h6",
+    logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
+    home: "M3 11l9-8 9 8M5 10v10h14V10",
+  };
+  const ICON_FOR = {
+    "super-overview": "grid", "super-announcements": "bell", "super-accounts": "users", "super-audit": "shield", "super-departments": "building", "super-settings": "gear",
+    "dashboard-panel": "grid", claims: "receipt", search: "search", empdir: "book", records: "folder", essadmin: "inbox", approval: "swap", tkapprovals: "clock", vacancies: "briefcase",
+    applicants: "file", interview: "mic", onboarding: "check", trainai: "spark", auditlog: "list", "staff-home": "home", "officer-home": "check",
+    leave: "calendar", timesheet: "timer", filex: "share",
+  };
+  const svg = (name) => `<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${P[name]}"/></svg>`;
+  function decorateNav() {
+    document.querySelectorAll(".nav .nav-item[data-module]").forEach((b) => {
+      if (b.querySelector(".nav-icon")) return;
+      const icon = ICON_FOR[b.dataset.module]; if (!icon) return;
+      b.innerHTML = `${svg(icon)}<span>${b.textContent.trim()}</span>`;
+    });
+  }
+  document.addEventListener("DOMContentLoaded", decorateNav);
+
+  // ---------------------------------------------------------------------
+  // Hooks: load settings after sign-in, render pages when opened
+  // ---------------------------------------------------------------------
+  const prevAuth = window.showAuthenticatedDashboard;
+  if (typeof prevAuth === "function") {
+    window.showAuthenticatedDashboard = function (u) { prevAuth(u); loadSettings(); if (u && u.role === "SUPER_ADMIN") loadDepartments().catch(() => null); };
+  }
+  const prevShow = window.showModule;
+  window.showModule = function (id) {
+    prevShow(id);
+    if (id === "super-settings") renderSettings();
+    if (id === "super-departments") renderDepartments();
+    if (id === "super-accounts") loadDepartments().catch(() => null);
+  };
+  document.addEventListener("input", (e) => { if (e.target && e.target.id === "superDepartment") fillDatalists(); });
+  window.renderDepartments = renderDepartments;
+})();
+
+</script>
+<script>
+// Dashboard analytics for Admin (HR) and Super Admin, plus the "Train AI" module.
+// Needs script.js (apiRequest, read, write, showModule, generateAiReply) and hims-charts.js.
+(function () {
+  const C = window.HimsCharts;
+  const $ = (id) => document.getElementById(id);
+  const esc = C.esc;
+  const peso = (n) => "₱" + Number(n || 0).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const safeRead = (key) => { try { return read(key); } catch (e) { return []; } };
+  const stamp = (id) => { if ($(id)) $(id).textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); };
+
+  // ---------------------------------------------------------------------
+  // Scorecard targets. Change these numbers to match your hospital's goals.
+  // ---------------------------------------------------------------------
+  const ADMIN_TARGETS = {
+    hireRate: 10,             // % of applications that end in Hired
+    reachedInterview: 30,     // % of applications that reach Interview or later
+    vacanciesWithApplicants: 100, // % of open vacancies that have at least one applicant
+    pendingHireOrders: 0,     // hire orders from HR3 still waiting to be published or declined
+    pendingClaims: 5,         // claims still waiting for approval
+    pendingEss: 5,            // employee self-service requests waiting for HR
+    onboardingOverdue: 0,     // new hires still in onboarding more than 30 days after being hired
+    interviewsCompleted: 80,  // % of non-cancelled interviews marked Completed
+    activeEmployees: 90,      // % of employees with Active status
+  };
+  const SUPER_TARGETS = {
+    failedLogins: 10,     // failed sign-ins in the last 24 hours
+    activeAccounts: 90,   // % of accounts enabled
+    recentSignIn: 70,     // % of active accounts that signed in during the last 30 days
+    neverSignedIn: 20,    // % of active accounts that never signed in
+  };
+
+  const APP_STATUSES = ["Applied", "Screening", "Interview", "Hired", "Rejected"];
+  const STATUS_TONE = { Applied: "main", Screening: "alt", Interview: "watch", Hired: "good", Rejected: "bad" };
+
+  // =====================================================================
+  // ADMIN (HR) DASHBOARD
+  // =====================================================================
+  async function syncRecords(kind) {
+    try { return (await apiRequest("sync", { method: "GET", query: { kind } })).records || []; } catch (e) { return null; }
+  }
+  // Shows where each graph's numbers come from, so the panel can see what is live.
+  const SOURCE_TEXT = { db: "Live from database", browser: "Saved in this browser", offline: "Database unavailable" };
+  function setSource(id, kind) {
+    const card = $(id) && $(id).closest(".hx-card"); if (!card) return;
+    let tag = card.querySelector(".hx-src");
+    if (!tag) { tag = document.createElement("span"); card.querySelector("h4").appendChild(tag); }
+    tag.className = "hx-src hx-src-" + kind;
+    tag.textContent = SOURCE_TEXT[kind];
+  }
+  async function settle(resource, query) {
+    try { return (await apiRequest(resource, query ? { query } : {})).records || []; } catch (e) { return null; }
+  }
+
+  async function renderAdminAnalytics() {
+    if (!$("hxAdminKpis")) return;
+    $("hxAdminUpdated").textContent = "Loading analytics...";
+    const [vacsRaw, appsRaw, empsRaw, claimsDb, leavesDb, attendDb] = await Promise.all([
+      settle("vacancies"), settle("applications"), settle("employees"),
+      syncRecords("claim"), syncRecords("leave"), syncRecords("attendance"),
+    ]);
+    const offline = [vacsRaw, appsRaw, empsRaw].filter((x) => x === null).length;
+
+    const vacs = (vacsRaw || []).filter((v) => !Number(v.archived));
+    const apps = (appsRaw || []).filter((a) => !Number(a.archived));
+    const emps = empsRaw || [];
+    // Claims and ESS requests are kept in the database by hims-shared-sync.js (same list on every computer).
+    // Leave and attendance come from the database "sync" records script.js saves.
+    if (window.HIMS_SHARED) await window.HIMS_SHARED.pull(false);
+    const claims = safeRead("claims").filter((c) => !c.archived);
+    const sharedLive = (k) => !!(window.HIMS_SHARED && window.HIMS_SHARED.isLive(k));
+    const leaves = leavesDb && leavesDb.length ? leavesDb : safeRead("leaves");
+    const attendance = attendDb && attendDb.length ? attendDb : safeRead("attendance");
+    setSource("hxClaims", sharedLive("claims") ? "db" : "browser");
+    setSource("hxLeaveTypes", leavesDb && leavesDb.length ? "db" : "browser");
+    setSource("hxAttendTrend", attendDb && attendDb.length ? "db" : "browser");
+    ["hxPipeline", "hxAppsTrend", "hxSource"].forEach((id) => setSource(id, appsRaw === null ? "offline" : "db"));
+    setSource("hxHeadcount", empsRaw === null ? "offline" : "db");
+    setSource("hxEss", sharedLive("essRequests") ? "db" : "browser");
+    const interviews = safeRead("interviews").filter((i) => !i.archived);
+
+    const byStatus = C.countBy(apps, "status");
+    const hired = byStatus.Hired || 0;
+    const reached = (byStatus.Interview || 0) + hired;
+    const openVacs = vacs.filter((v) => v.status === "Open");
+    const pendingOrders = vacs.filter((v) => v.status === "Pending");
+    const emptyOpenVacs = openVacs.filter((v) => !Number(v.applications));
+    const pendingClaims = claims.filter((c) => (c.status || "Pending") === "Pending");
+    const activeEmps = emps.filter((e) => e.status === "active").length;
+    const onLeave = emps.filter((e) => e.status === "on_leave").length;
+    const liveInterviews = interviews.filter((i) => i.status !== "Cancelled");
+    const doneInterviews = liveInterviews.filter((i) => i.status === "Completed").length;
+
+    const hireRate = C.pct(hired, apps.length);
+    const reachRate = C.pct(reached, apps.length);
+    const coverRate = C.pct(openVacs.length - emptyOpenVacs.length, openVacs.length);
+    const activeRate = C.pct(activeEmps, emps.length);
+    const interviewRate = C.pct(doneInterviews, liveInterviews.length);
+
+    // KPI tiles
+    C.kpis($("hxAdminKpis"), [
+      { label: "Open vacancies", value: openVacs.length, sub: `${pendingOrders.length} hire order(s) waiting`, tone: pendingOrders.length ? "watch" : "main" },
+      { label: "Active applications", value: apps.length, sub: `${byStatus.Applied || 0} new, ${byStatus.Screening || 0} screening` },
+      { label: "Hired", value: hired, sub: hireRate == null ? "No applications yet" : `${hireRate}% hire rate` },
+      { label: "Employees", value: emps.length, sub: `${activeEmps} active, ${onLeave} on leave` },
+      { label: "Interviews", value: liveInterviews.length, sub: `${doneInterviews} completed` },
+      { label: "Pending claims", value: pendingClaims.length, sub: peso(pendingClaims.reduce((t, c) => t + (Number(c.amount) || 0), 0)), tone: pendingClaims.length > ADMIN_TARGETS.pendingClaims ? "bad" : "main" },
+    ]);
+
+    // Graphs
+    C.bars($("hxPipeline"), APP_STATUSES.map((s) => ({ label: s, value: byStatus[s] || 0, tone: STATUS_TONE[s] })),
+      { empty: appsRaw === null ? "Applications could not be loaded." : "No applications yet." });
+
+    C.line($("hxAppsTrend"),
+      C.weeklySeries(apps.map((a) => C.parseDate(a.date || a.created || a.applied_at)), 8).map((b) => ({ label: b.label, value: b.value })),
+      { label: "Applications per week", empty: "Not enough dated applications to draw a trend yet." });
+
+    const deptCounts = C.countBy(emps, (e) => e.department);
+    C.bars($("hxHeadcount"), Object.entries(deptCounts).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([label, value]) => ({ label, value })),
+      { empty: empsRaw === null ? "Employee records could not be loaded." : "No employees on record yet." });
+
+    const claimCounts = C.countBy(claims, (c) => c.status || "Pending");
+    C.bars($("hxClaims"), ["Pending", "Approved", "Rejected"].map((s) => ({
+      label: s, value: claimCounts[s] || 0, tone: s === "Approved" ? "good" : s === "Rejected" ? "bad" : "watch",
+    })), { empty: "No claims submitted yet." });
+
+    const days = (a, b) => { const x = C.parseDate(a), y = C.parseDate(b); return x && y ? Math.max(1, Math.round((y - x) / 864e5) + 1) : 1; };
+    const leaveByType = {};
+    leaves.forEach((l) => { const t = l.type || l.leave_type || "Unspecified"; leaveByType[t] = (leaveByType[t] || 0) + days(l.start || l.start_date, l.end || l.end_date); });
+    C.bars($("hxLeaveTypes"), Object.entries(leaveByType).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value, text: value + " day(s)" })),
+      { empty: "No leave requests recorded yet." });
+
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const perDay = Array.from({ length: 14 }, (_, i) => { const d = new Date(today); d.setDate(today.getDate() - 13 + i); return { d, value: 0, label: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) }; });
+    attendance.forEach((a) => {
+      const d = C.parseDate(a.date || a.created || a.time_in || a.timeIn); if (!d) return;
+      d.setHours(0, 0, 0, 0);
+      const hit = perDay.find((p) => p.d.getTime() === d.getTime()); if (hit) hit.value += 1;
+    });
+    C.line($("hxAttendTrend"), perDay, { label: "Attendance logs per day", empty: "No attendance logged in the last 14 days." });
+    const presentToday = perDay[perDay.length - 1].value;
+
+    // Recruitment source: internal = tagged from the employee portal or an employee's email
+    const empEmails = new Set(emps.map((e) => String(e.email || "").trim().toLowerCase()).filter(Boolean));
+    const isInternal = (a) => /\[Internal applicant/i.test(String(a.note || "")) || empEmails.has(String(a.email || "").trim().toLowerCase());
+    const internalApps = apps.filter(isInternal).length;
+    C.bars($("hxSource"), [
+      { label: "External", value: apps.length - internalApps, tone: "alt" },
+      { label: "Internal", value: internalApps, tone: "good" },
+    ], { empty: "No applications yet." });
+
+    const ess = safeRead("essRequests");
+    const essCounts = C.countBy(ess, "status");
+    C.bars($("hxEss"), ["Pending", "Approved", "Completed", "Rejected"].map((s) => ({
+      label: s, value: essCounts[s] || 0, tone: s === "Pending" ? "watch" : s === "Rejected" ? "bad" : "good",
+    })), { empty: "No self-service requests yet." });
+
+    // Onboarding (from the database through the Onboarding page loader)
+    const onbAll = window.loadOnboardingRecords ? ((await window.loadOnboardingRecords()) || []).filter((r) => !r.archived) : [];
+    const onbOpen = onbAll.filter((r) => r.status !== "Completed");
+    const onbReady = onbOpen.filter((r) => r.done === r.total);
+    const lateDays = window.himsNumber ? window.himsNumber("onboarding_overdue_days") || 30 : 30;
+    const onbLate = onbOpen.filter((r) => { const d = C.parseDate(r.startDate || r.created); return d && (Date.now() - d) / 864e5 > lateDays; });
+    C.bars($("hxOnboarding"), [
+      { label: "In progress", value: onbOpen.length - onbReady.length, tone: "main" },
+      { label: "Ready for approval", value: onbReady.length, tone: "watch" },
+      { label: `Overdue (${lateDays}+ days)`, value: onbLate.length, tone: "bad" },
+      { label: "Completed", value: onbAll.length - onbOpen.length, tone: "good" },
+    ], { empty: "No one in onboarding yet." });
+    const itemDone = {};
+    onbOpen.forEach((r) => r.items.forEach((i) => { itemDone[i.label] = itemDone[i.label] || { done: 0, total: 0 }; itemDone[i.label].total += 1; if (i.done) itemDone[i.label].done += 1; }));
+    C.bars($("hxOnbItems"), Object.entries(itemDone).map(([label, v]) => ({ label: label.split(" (")[0], value: v.done, max: v.total, text: `${v.done}/${v.total}`, tone: v.done === v.total ? "good" : "main" })),
+      { empty: "No one in onboarding yet." });
+    setSource("hxOnboarding", "db"); setSource("hxOnbItems", "db");
+
+    // Scorecard (targets come from the Super Admin Settings page when available)
+    const N = (k, d) => (window.himsNumber ? window.himsNumber(k) : d);
+    const T = Object.assign({}, ADMIN_TARGETS, window.HIMS_SETTINGS ? {
+      hireRate: N("target_hire_rate"), reachedInterview: N("target_reached_interview"), interviewsCompleted: N("target_interviews_completed"),
+      activeEmployees: N("target_active_employees"), pendingClaims: N("target_pending_claims"), pendingEss: N("target_pending_ess"),
+    } : {});
+    const row = (metric, value, unit, target, higher, note) => ({
+      metric, note,
+      actual: value == null ? "No data" : value + unit,
+      target: (higher ? "≥ " : "≤ ") + target + unit,
+      status: value == null ? "na" : C.grade(value, target, higher),
+    });
+    C.scorecard($("hxAdminScore"), [
+      row("Hire rate", hireRate, "%", T.hireRate, true, "Hired ÷ all active applications"),
+      row("Applicants reaching interview", reachRate, "%", T.reachedInterview, true, "Interview or Hired ÷ all applications"),
+      row("Open vacancies with applicants", coverRate, "%", T.vacanciesWithApplicants, true, "Open vacancies that received at least one application"),
+      row("Hire orders awaiting action", pendingOrders.length, "", T.pendingHireOrders, false, "Publish or decline hire orders from HR3"),
+      row("Interviews completed", interviewRate, "%", T.interviewsCompleted, true, "Completed ÷ scheduled (excludes cancelled)"),
+      row("Pending claims", pendingClaims.length, "", T.pendingClaims, false, "Claims not yet approved or rejected"),
+      row("Pending ESS requests", essCounts.Pending || 0, "", T.pendingEss, false, "Employee self-service requests waiting for HR"),
+      row("Active workforce", activeRate, "%", T.activeEmployees, true, "Employees with Active status"),
+      row("Onboarding overdue", onbAll.length ? onbLate.length : null, "", T.onboardingOverdue, false, `New hires still onboarding ${lateDays}+ days after hire`),
+    ], { tableClass: "request-table" });
+
+    // Data analytics: plain-language findings from the numbers above
+    const notes = [];
+    if (apps.length) {
+      notes.push({ text: `${apps.length} active application(s): ${reachRate}% reached the interview stage and ${hireRate}% were hired.` });
+      const topVac = [...vacs].sort((a, b) => Number(b.applications) - Number(a.applications))[0];
+      if (topVac && Number(topVac.applications)) notes.push({ text: `"${topVac.title}" is the most in-demand vacancy with ${topVac.applications} application(s).` });
+      const waiting = byStatus.Applied || 0;
+      if (waiting) notes.push({ text: `${waiting} application(s) are still at "Applied" and have not been screened yet.`, tone: waiting > 5 ? "watch" : "main" });
+    } else if (appsRaw !== null) {
+      notes.push({ text: "No applications yet. Publish a vacancy so it appears on the careers page.", tone: "watch" });
+    }
+    if (internalApps) notes.push({ text: `${internalApps} of ${apps.length} applicant(s) are current employees applying internally (${C.pct(internalApps, apps.length)}%).` });
+    if (essCounts.Pending) notes.push({ text: `${essCounts.Pending} employee self-service request(s) are waiting in ESS Requests.`, tone: essCounts.Pending > 5 ? "bad" : "watch" });
+    if (pendingOrders.length) notes.push({ text: `${pendingOrders.length} hire order(s) from HR3 are waiting to be published or declined.`, tone: "watch" });
+    if (emptyOpenVacs.length) notes.push({ text: `${emptyOpenVacs.length} open vacancy(ies) have no applicants: ${emptyOpenVacs.slice(0, 3).map((v) => v.title).join(", ")}${emptyOpenVacs.length > 3 ? ", ..." : ""}.`, tone: "watch" });
+    const topDept = Object.entries(deptCounts).sort((a, b) => b[1] - a[1])[0];
+    if (topDept) notes.push({ text: `${topDept[0]} is the largest department with ${topDept[1]} of ${emps.length} employees.` });
+    if (leaves.length) {
+      const topLeave = Object.entries(leaveByType).sort((a, b) => b[1] - a[1])[0];
+      notes.push({ text: `${leaves.length} leave request(s) on record, totalling ${Object.values(leaveByType).reduce((a, b) => a + b, 0)} day(s). ${topLeave[0]} is the most used (${topLeave[1]} day(s)).` });
+    }
+    if (attendance.length) notes.push({ text: `${presentToday} attendance log(s) today; ${perDay.reduce((t, p) => t + p.value, 0)} in the last 14 days.` });
+    if (onbOpen.length) {
+      const lowest = Object.entries(itemDone).sort((a, b) => a[1].done / a[1].total - b[1].done / b[1].total)[0];
+      notes.push({ text: `${onbOpen.length} new hire(s) in onboarding${onbReady.length ? `, ${onbReady.length} ready for HR Officer approval` : ""}.${lowest ? ` Least completed item: ${lowest[0].split(" (")[0]} (${lowest[1].done}/${lowest[1].total}).` : ""}`, tone: onbReady.length ? "watch" : "main" });
+    }
+    if (onbLate.length) notes.push({ text: `${onbLate.length} new hire(s) have been onboarding for over ${lateDays} days: ${onbLate.slice(0, 3).map((r) => r.name).join(", ")}.`, tone: "bad" });
+    if (onLeave) notes.push({ text: `${onLeave} employee(s) are currently on leave.` });
+    if (pendingClaims.length) notes.push({ text: `${pendingClaims.length} claim(s) worth ${peso(pendingClaims.reduce((t, c) => t + (Number(c.amount) || 0), 0))} are waiting for approval.`, tone: pendingClaims.length > T.pendingClaims ? "bad" : "watch" });
+    if (hireRate != null && hireRate >= T.hireRate) notes.push({ text: `Hire rate is on target (${hireRate}% vs ≥ ${T.hireRate}%).`, tone: "good" });
+    if (offline) notes.push({ text: `${offline} data source(s) could not be loaded from the server, so some numbers may be incomplete.`, tone: "bad" });
+    C.insights($("hxAdminInsights"), notes);
+
+    $("hxAdminUpdated").textContent = offline ? "Some data could not be loaded" : "";
+    if (!offline) stamp("hxAdminUpdated");
+  }
+  window.refreshAdminAnalytics = renderAdminAnalytics;
+
+  // =====================================================================
+  // SUPER ADMIN OVERVIEW
+  // =====================================================================
+  async function renderSuperAnalytics() {
+    if (!$("hxRoles")) return;
+    let accounts = null, stats = null;
+    try { accounts = (await apiRequest("super-admin", { query: { view: "accounts" } })).records || []; } catch (e) { accounts = null; }
+    try { stats = (await apiRequest("super-admin", { query: { view: "overview" } })).stats || null; } catch (e) { stats = null; }
+    if (accounts === null) {
+      ["hxRoles", "hxSignins", "hxTraining", "hxSuperScore", "hxSuperInsights"].forEach((id) => { $(id).innerHTML = '<p class="hx-empty">Account data could not be loaded.</p>'; });
+      return;
+    }
+    ["hxRoles", "hxSignins", "hxTraining"].forEach((id) => setSource(id, "db"));
+    const now = Date.now();
+    const active = accounts.filter((a) => Number(a.active) === 1);
+    const ageDays = (a) => { const d = C.parseDate(a.lastLogin); return d ? (now - d.getTime()) / 864e5 : null; };
+    const buckets = { "Last 7 days": 0, "8–30 days ago": 0, "Over 30 days ago": 0, "Never signed in": 0 };
+    active.forEach((a) => {
+      const age = ageDays(a);
+      if (age == null) buckets["Never signed in"] += 1;
+      else if (age <= 7) buckets["Last 7 days"] += 1;
+      else if (age <= 30) buckets["8–30 days ago"] += 1;
+      else buckets["Over 30 days ago"] += 1;
+    });
+    const roleLabel = (r) => ({ SUPER_ADMIN: "Super Admin", ADMIN: "Admin", EMPLOYEE: "Employee", TRAINEE: "Trainee", HR_STAFF: "HR Staff", HR_OFFICER: "HR Officer" }[r] || r);
+    const roles = C.countBy(accounts, (a) => roleLabel(a.role));
+    C.bars($("hxRoles"), Object.entries(roles).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value })), { empty: "No accounts yet." });
+    C.bars($("hxSignins"), Object.entries(buckets).map(([label, value], i) => ({ label, value, tone: ["good", "main", "watch", "muted"][i] })), { empty: "No active accounts." });
+
+    const trainees = accounts.filter((a) => a.role === "TRAINEE");
+    const training = C.countBy(trainees, (t) => t.trainingStatus || "Not started");
+    C.bars($("hxTraining"), ["Not started", "In progress", "Completed"].map((s) => ({ label: s, value: training[s] || 0, tone: s === "Completed" ? "good" : s === "In progress" ? "main" : "muted" })),
+      { empty: "No trainee accounts yet." });
+
+    const T = SUPER_TARGETS;
+    const failed = stats ? Number(stats.failedLogins) : null;
+    const activeRate = C.pct(active.length, accounts.length);
+    const recentRate = C.pct(buckets["Last 7 days"] + buckets["8–30 days ago"], active.length);
+    const neverRate = C.pct(buckets["Never signed in"], active.length);
+    const r = (metric, value, unit, target, higher, note) => ({
+      metric, note, actual: value == null ? "No data" : value + unit,
+      target: (higher ? "≥ " : "≤ ") + target + unit, status: value == null ? "na" : C.grade(value, target, higher),
+    });
+    C.scorecard($("hxSuperScore"), [
+      r("Failed sign-ins (24h)", failed, "", T.failedLogins, false, "Repeated failures can mean a guessed password"),
+      r("Enabled accounts", activeRate, "%", T.activeAccounts, true, "Enabled ÷ all accounts"),
+      r("Signed in within 30 days", recentRate, "%", T.recentSignIn, true, "Of enabled accounts"),
+      r("Never signed in", neverRate, "%", T.neverSignedIn, false, "Of enabled accounts; consider disabling unused logins"),
+    ], { tableClass: "request-table" });
+
+    const notes = [];
+    notes.push({ text: `${accounts.length} account(s) in total: ${active.length} enabled and ${accounts.length - active.length} disabled.` });
+    const topRole = Object.entries(roles).sort((a, b) => b[1] - a[1])[0];
+    if (topRole) notes.push({ text: `Most accounts are ${topRole[0]} (${topRole[1]}).` });
+    if (buckets["Never signed in"]) notes.push({ text: `${buckets["Never signed in"]} enabled account(s) have never signed in. Check that their owners received their temporary password.`, tone: "watch" });
+    if (failed != null && failed > T.failedLogins) notes.push({ text: `${failed} failed sign-ins in the last 24 hours is above the limit of ${T.failedLogins}. Review the Security Audit.`, tone: "bad" });
+    else if (failed != null) notes.push({ text: `Failed sign-ins are within the safe range (${failed} in 24 hours).`, tone: "good" });
+    const done = training.Completed || 0;
+    if (done) notes.push({ text: `${done} trainee(s) completed training and can be promoted to Employee in Accounts & Roles.`, tone: "good" });
+    C.insights($("hxSuperInsights"), notes);
+    stamp("hxSuperUpdated");
+  }
+  window.refreshSuperAnalytics = renderSuperAnalytics;
+
+  // =====================================================================
+  // TRAIN AI
+  // The HR Assistant answers from trained answers first, then built-in replies.
+  // Saved in this browser (localStorage key "aiTraining").
+  // =====================================================================
+  const TRAIN_KEY = "aiTraining", LOG_KEY = "aiQuestionLog";
+  const BUILT_IN = [
+    /(hi|hello|hey|good morning|good afternoon|good evening|good night)/, /(who are you|what are you|your name|what is your name)/,
+    /(are you real|are you ai|fake ai|robot|human)/, /(attendance|time in|time out|present|clock|late)/, /(leave|vacation|sick|absence|time off)/,
+    /(request|approval|pending|approve|reject)/, /(claim|reimbursement|expense|receipt|finance)/, /(summary|overview|status|report|insight|update)/,
+    /(help|what can you do|how do i|how to|can you help)/, /(login|password|account|profile|logout|sign in|sign out)/,
+    /(support|issue|problem|bug|error|broken|not working)/, /(what day is it|today|date|time)/, /(joke|funny|tell me something|laugh)/,
+    /(thanks|thank you|appreciate it|good job)/, /(bye|goodbye|see you|exit|close)/, /(show|open|list|module|page)/,
+    /(how many|count|number of)/, /(search|find|employee|who is)/,
+  ];
+  let editingId = null;
+
+  const training = () => safeRead(TRAIN_KEY);
+  const activeTraining = () => training().filter((i) => !i.archived); // archived answers are not used
+  const splitKeywords = (text) => [...new Set(String(text || "").toLowerCase().split(/[,\n]/).map((k) => k.trim()).filter(Boolean))];
+
+  function findTrained(message) {
+    const lower = String(message || "").toLowerCase();
+    let best = null, bestLen = 0;
+    activeTraining().forEach((item) => (item.keywords || []).forEach((k) => {
+      if (k && lower.includes(k) && k.length > bestLen) { best = item; bestLen = k.length; }
+    }));
+    return best;
+  }
+
+  function logQuestion(message, source) {
+    const log = safeRead(LOG_KEY);
+    log.unshift({ q: String(message).slice(0, 300), source, time: new Date().toLocaleString() });
+    write(LOG_KEY, log.slice(0, 300));
+  }
+
+  // Wrap the existing assistant so trained answers win.
+  const builtInReply = window.generateAiReply;
+  if (typeof builtInReply === "function") {
+    window.generateAiReply = function (message, options = {}) {
+      const text = String(message || "").trim();
+      const hit = text ? findTrained(text) : null;
+      const source = hit ? "trained" : BUILT_IN.some((r) => r.test(text.toLowerCase())) ? "built-in" : "generic";
+      if (text && !options.silent) {
+        logQuestion(text, source);
+        if (hit) {
+          const items = training();
+          const saved = items.find((i) => i.id === hit.id);
+          if (saved) { saved.uses = (saved.uses || 0) + 1; write(TRAIN_KEY, items); }
+        }
+        if ($("aiLogTable") && $("trainai").style.display === "block") renderTrainAi();
+      }
+      return hit ? hit.answer : builtInReply(message);
+    };
+  }
+
+  function renderTrainAi() {
+    if (!$("aiTrainTable")) return;
+    const showArchived = !!($("aiShowArchived") && $("aiShowArchived").checked);
+    const items = training().filter((i) => !!i.archived === showArchived);
+    $("aiTrainTable").innerHTML = items.length ? items.map((i) => `<tr>
+        <td>${(i.keywords || []).map((k) => `<span class="activity-tag">${esc(k)}</span>`).join(" ")}</td>
+        <td>${esc(i.answer)}</td>
+        <td>${Number(i.uses || 0)}</td>
+        <td>${showArchived
+          ? `<button type="button" onclick="restoreAiTraining('${esc(i.id)}')">Restore</button>`
+          : `<button type="button" onclick="editAiTraining('${esc(i.id)}')">Edit</button> <button type="button" class="secondary-action" onclick="archiveAiTraining('${esc(i.id)}')">Archive</button>`}</td>
+      </tr>`).join("")
+      : `<tr><td colspan="4" class="table-empty">${showArchived ? "No archived answers." : "No trained answers yet. Add your first one above."}</td></tr>`;
+
+    const showLogArchived = !!($("aiLogShowArchived") && $("aiLogShowArchived").checked);
+    const log = safeRead(LOG_KEY).map((l, idx) => ({ ...l, idx })).filter((l) => !!l.archived === showLogArchived);
+    const label = { trained: "Trained answer", "built-in": "Built-in answer", generic: "No good answer" };
+    const tone = { trained: "good", "built-in": "na", generic: "bad" };
+    $("aiLogTable").innerHTML = log.length ? log.slice(0, 30).map((l) => `<tr>
+        <td>${esc(l.q)}</td><td>${esc(l.time)}</td>
+        <td><span class="hx-pill hx-pill-${tone[l.source] || "na"}">${esc(label[l.source] || l.source)}</span></td>
+        <td>${l.source === "trained" ? "" : `<button type="button" onclick="teachFromLog(${l.idx})">Teach answer</button>`}</td>
+      </tr>`).join("")
+      : `<tr><td colspan="4" class="table-empty">${showLogArchived ? "No archived questions." : "Questions asked in the HR Assistant will appear here."}</td></tr>`;
+
+    const generic = log.filter((l) => l.source === "generic").length;
+    C.kpis($("aiTrainKpis"), [
+      { label: "Trained answers", value: activeTraining().length },
+      { label: "Times used", value: activeTraining().reduce((t, i) => t + Number(i.uses || 0), 0) },
+      { label: "Recent questions", value: log.length },
+      { label: "Unanswered", value: generic, sub: "Questions with no good answer", tone: generic ? "watch" : "main" },
+    ]);
+  }
+
+  window.saveAiTraining = function () {
+    const keywords = splitKeywords($("aiTrainKeywords").value);
+    const answer = $("aiTrainAnswer").value.trim();
+    if (!keywords.length || !answer) { showWarningToast("Enter at least one keyword and an answer."); return; }
+    const items = training();
+    if (editingId) {
+      const item = items.find((i) => i.id === editingId);
+      if (item) { item.keywords = keywords; item.answer = answer; item.updated = new Date().toLocaleString(); }
+    } else {
+      items.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), keywords, answer, uses: 0, created: new Date().toLocaleString() });
+    }
+    write(TRAIN_KEY, items);
+    addNotification(`AI answer ${editingId ? "updated" : "added"} for "${keywords[0]}".`);
+    cancelAiEdit();
+    renderTrainAi();
+  };
+  window.editAiTraining = function (id) {
+    const item = training().find((i) => i.id === id); if (!item) return;
+    editingId = id;
+    $("aiTrainKeywords").value = item.keywords.join(", ");
+    $("aiTrainAnswer").value = item.answer;
+    $("aiTrainSave").textContent = "Update answer";
+    $("aiTrainKeywords").focus();
+  };
+  window.renderTrainAi = renderTrainAi;
+  window.archiveAiTraining = function (id) {
+    const items = training(); const item = items.find((i) => i.id === id); if (!item) return;
+    if (!confirm(`Archive the trained answer for "${item.keywords[0]}"? The assistant stops using it. You can restore it from "Show archived".`)) return;
+    item.archived = true; item.archivedAt = new Date().toLocaleString();
+    write(TRAIN_KEY, items);
+    if (editingId === id) cancelAiEdit();
+    addNotification(`AI answer for "${item.keywords[0]}" archived.`);
+    renderTrainAi();
+  };
+  window.restoreAiTraining = function (id) {
+    const items = training(); const item = items.find((i) => i.id === id); if (!item) return;
+    item.archived = false;
+    write(TRAIN_KEY, items);
+    addNotification(`AI answer for "${item.keywords[0]}" restored.`);
+    renderTrainAi();
+  };
+  window.cancelAiEdit = function () {
+    editingId = null;
+    $("aiTrainKeywords").value = ""; $("aiTrainAnswer").value = "";
+    $("aiTrainSave").textContent = "Save answer";
+  };
+  window.teachFromLog = function (idx) {
+    const entry = safeRead(LOG_KEY)[idx]; if (!entry) return;
+    cancelAiEdit();
+    $("aiTrainKeywords").value = entry.q.toLowerCase().replace(/[?!.]+$/, "");
+    $("aiTrainAnswer").focus();
+    $("aiTrainKeywords").scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+  window.testAiTraining = function () {
+    const q = $("aiTestInput").value.trim(); if (!q) return;
+    const hit = findTrained(q);
+    const reply = window.generateAiReply(q, { silent: true });
+    $("aiTestReply").innerHTML = `<span class="hx-pill hx-pill-${hit ? "good" : "na"} ai-source">${hit ? "Trained answer" : "Built-in answer"}</span><div>${esc(reply)}</div>`;
+  };
+  window.archiveAiLog = function () {
+    const log = safeRead(LOG_KEY);
+    if (!log.some((l) => !l.archived)) return;
+    if (!confirm("Archive the recent questions? You can still see them with \"Show archived\".")) return;
+    write(LOG_KEY, log.map((l) => ({ ...l, archived: true })));
+    renderTrainAi();
+  };
+
+  // ---------------------------------------------------------------------
+  // Navigation hooks
+  // ---------------------------------------------------------------------
+  const prevShow = window.showModule;
+  window.showModule = function (id) {
+    prevShow(id);
+    if (id === "dashboard-panel") renderAdminAnalytics();
+    if (id === "super-overview") renderSuperAnalytics();
+    if (id === "trainai") renderTrainAi();
+  };
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target && e.target.id === "aiTestInput") { e.preventDefault(); e.stopPropagation(); window.testAiTraining(); }
+  }, true);
+})();
+
+</script>
+<script>
+// Password-protected downloads.
+// Before any report or record is downloaded, the signed-in user must re-enter their account password.
+// The password is checked by the server (the same check as signing in), never stored in the browser.
+(function () {
+  const API = location.port === "5500" ? `${location.protocol}//${location.hostname}:8000/backend/api.php` : "backend/api.php";
+  const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let pending = null;
+
+  function currentEmail() {
+    if (window.HIMS_SIGNED_IN_EMAIL) return window.HIMS_SIGNED_IN_EMAIL; // employee portal
+    try {
+      const u = JSON.parse(localStorage.getItem("currentUser") || "null");
+      if (u && u.email) return u.email;
+    } catch (e) { /* ignore */ }
+    return "";
+  }
+
+  function buildDialog() {
+    if (document.getElementById("dlLock")) return;
+    const wrap = document.createElement("div");
+    wrap.id = "dlLock";
+    wrap.className = "modal-backdrop";
+    wrap.hidden = true;
+    wrap.innerHTML = `
+      <section class="modal-panel dl-lock-panel" role="dialog" aria-modal="true" aria-labelledby="dlLockTitle">
+        <div class="modal-header">
+          <div>
+            <span class="modal-eyebrow">Protected download</span>
+            <h2 id="dlLockTitle">Enter your password</h2>
+            <p class="modal-supporting-text" id="dlLockText"></p>
+          </div>
+          <button class="modal-close" type="button" aria-label="Cancel download" data-dl-cancel>&times;</button>
+        </div>
+        <form id="dlLockForm" class="support-form" autocomplete="off">
+          <label for="dlLockPassword">Account password</label>
+          <input id="dlLockPassword" type="password" autocomplete="current-password" required>
+          <p id="dlLockError" class="login-message" role="alert" aria-live="polite"></p>
+          <div class="profile-actions">
+            <button type="submit" id="dlLockSubmit">Download</button>
+            <button type="button" class="secondary-action" data-dl-cancel>Cancel</button>
+          </div>
+        </form>
+      </section>`;
+    document.body.appendChild(wrap);
+    wrap.querySelectorAll("[data-dl-cancel]").forEach((b) => b.addEventListener("click", () => finish(false)));
+    wrap.addEventListener("click", (e) => { if (e.target === wrap) finish(false); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !wrap.hidden) finish(false); });
+    document.getElementById("dlLockForm").addEventListener("submit", onSubmit);
+  }
+
+  function finish(ok) {
+    const box = document.getElementById("dlLock");
+    if (box) box.hidden = true;
+    document.body.classList.remove("modal-open");
+    const p = pending; pending = null;
+    if (p) p(ok);
+  }
+
+  async function onSubmit(event) {
+    event.preventDefault();
+    const input = document.getElementById("dlLockPassword");
+    const error = document.getElementById("dlLockError");
+    const button = document.getElementById("dlLockSubmit");
+    const email = currentEmail();
+    if (!input.value) return;
+    if (!email) { error.textContent = "Your session has ended. Sign in again."; return; }
+    button.disabled = true; button.textContent = "Checking...";
+    error.textContent = "";
+    try {
+      const res = await fetch(`${API}?resource=login`, {
+        method: "POST",
+        credentials: API.startsWith("http") ? "include" : "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: input.value }),
+      });
+      const data = await res.json().catch(() => ({}));
+      const ok = res.ok && data.user && String(data.user.email || "").toLowerCase() === email.toLowerCase();
+      if (!ok) {
+        error.textContent = res.status === 429 || res.status === 423 ? (data.error || "Too many attempts. Wait a moment and try again.") : "Incorrect password. The download was not started.";
+        input.select();
+        return;
+      }
+      input.value = "";
+      finish(true);
+    } catch (e) {
+      error.textContent = "Could not check your password. Make sure the server is running.";
+    } finally {
+      button.disabled = false; button.textContent = "Download";
+    }
+  }
+
+  // Ask for the password. Resolves true when it is correct, false when cancelled.
+  function confirmDownload(label) {
+    buildDialog();
+    if (pending) finish(false);
+    document.getElementById("dlLockText").innerHTML = `This file contains HR data. Confirm it's you to download <strong>${esc(label || "the report")}</strong>.`;
+    document.getElementById("dlLockError").textContent = "";
+    document.getElementById("dlLockPassword").value = "";
+    document.getElementById("dlLock").hidden = false;
+    document.body.classList.add("modal-open");
+    setTimeout(() => document.getElementById("dlLockPassword").focus(), 30);
+    return new Promise((resolve) => { pending = resolve; });
+  }
+
+  // Replace a global download function with a password-checked version.
+  function protect(name, label) {
+    const original = window[name];
+    if (typeof original !== "function" || original.__protected) return;
+    const guarded = async function (...args) {
+      const text = typeof label === "function" ? label(...args) : label;
+      if (await confirmDownload(text)) return original.apply(this, args);
+    };
+    guarded.__protected = true;
+    window[name] = guarded;
+  }
+
+  // Ask for the password and return it (the server checks it). Resolves null when cancelled.
+  function askPassword(label) {
+    return new Promise((resolve) => {
+      buildDialog();
+      const form = document.getElementById("dlLockForm");
+      const input = document.getElementById("dlLockPassword");
+      document.getElementById("dlLockText").innerHTML = `Confirm it's you to download <strong>${esc(label || "the file")}</strong>.`;
+      document.getElementById("dlLockError").textContent = "";
+      input.value = "";
+      const onSubmit2 = (event) => {
+        event.preventDefault(); event.stopImmediatePropagation();
+        const value = input.value; if (!value) return;
+        input.value = ""; cleanup(); pending = null; finish(false); resolve(value);
+      };
+      const cleanup = () => form.removeEventListener("submit", onSubmit2, true);
+      form.addEventListener("submit", onSubmit2, true);
+      if (pending) finish(false);
+      pending = () => { cleanup(); resolve(null); };
+      document.getElementById("dlLock").hidden = false;
+      document.body.classList.add("modal-open");
+      setTimeout(() => input.focus(), 30);
+    });
+  }
+
+  window.HimsSecure = { confirmDownload, protect, askPassword };
+})();
+
+</script>
+<script>
+// HR modules: ESS Requests (approve employee self-service requests), Employee Records,
+// and password protection for every report download on the HR / Super Admin pages.
+// Needs script.js (apiRequest, read, write, addNotification, showModule), hims-charts.js and hims-secure.js.
+(function () {
+  const C = window.HimsCharts;
+  const $ = (id) => document.getElementById(id);
+  const esc = C.esc;
+  const peso = (n) => "₱" + Number(n || 0).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const safeRead = (key) => { try { return read(key); } catch (e) { return []; } };
+  const actor = () => { try { const u = JSON.parse(localStorage.getItem("currentUser") || "null"); return (u && (u.name || u.email)) || "HR"; } catch (e) { return "HR"; } };
+  const lower = (v) => String(v || "").trim().toLowerCase();
+  const STATUS_TONE = { Pending: "watch", Approved: "good", Rejected: "bad", Completed: "good" };
+  const pill = (status) => `<span class="hx-pill hx-pill-${STATUS_TONE[status] || "na"}">${esc(status)}</span>`;
+
+  // =====================================================================
+  // ESS REQUESTS (Employee Self-Service)
+  // Employees submit these from their portal; HR approves or rejects here.
+  // Saved under localStorage "essRequests", like claims and interviews.
+  // =====================================================================
+  const ESS_KEY = "essRequests";
+  const essAll = () => safeRead(ESS_KEY);
+
+  function renderEss() {
+    if (!$("essTable")) return;
+    const all = essAll();
+    const status = $("essStatusFilter").value, type = $("essTypeFilter").value, q = lower($("essSearch").value);
+    const types = [...new Set(all.map((r) => r.type))].sort();
+    const keep = type;
+    $("essTypeFilter").innerHTML = '<option value="All">All request types</option>' + types.map((t) => `<option${t === keep ? " selected" : ""}>${esc(t)}</option>`).join("");
+    const rows = all.filter((r) => (status === "All" || r.status === status) && (type === "All" || r.type === type)
+      && lower([r.name, r.empId, r.department, r.type, r.details].join(" ")).includes(q));
+    $("essTable").innerHTML = rows.length ? rows.map((r) => `<tr>
+        <td><strong>${esc(r.name)}</strong><small>${esc(r.empId || "")}${r.department ? " · " + esc(r.department) : ""}</small></td>
+        <td>${esc(r.type)}${r.amount ? `<small>${esc(peso(r.amount))}</small>` : ""}${r.hours ? `<small>${esc(r.hours)} hour(s)</small>` : ""}</td>
+        <td class="ess-details">${esc(r.details || "-")}${r.neededBy ? `<small>Needed by ${esc(r.neededBy)}</small>` : ""}${r.hrNote ? `<small>HR note: ${esc(r.hrNote)}</small>` : ""}</td>
+        <td>${esc(r.created)}</td>
+        <td>${pill(r.status)}${r.handledBy ? `<small>by ${esc(r.handledBy)}</small>` : ""}</td>
+        <td>${r.status === "Pending"
+          ? `<button type="button" onclick="decideEss('${esc(r.id)}','Approved')">Approve</button> <button type="button" class="secondary-action" onclick="decideEss('${esc(r.id)}','Rejected')">Reject</button>`
+          : r.status === "Approved" ? `<button type="button" class="secondary-action" onclick="decideEss('${esc(r.id)}','Completed')">Mark completed</button>` : ""}</td>
+      </tr>`).join("")
+      : '<tr><td colspan="6" class="table-empty">No ESS requests match these filters.</td></tr>';
+
+    const count = C.countBy(all, "status");
+    C.kpis($("essKpis"), [
+      { label: "Pending", value: count.Pending || 0, sub: "Waiting for HR", tone: (count.Pending || 0) ? "watch" : "main" },
+      { label: "Approved", value: count.Approved || 0 },
+      { label: "Completed", value: count.Completed || 0 },
+      { label: "Rejected", value: count.Rejected || 0, tone: "muted" },
+    ]);
+  }
+
+  window.decideEss = function (id, status) {
+    const all = essAll(); const r = all.find((x) => x.id === id); if (!r) return;
+    let note = "";
+    if (status === "Rejected") {
+      note = prompt(`Reason for rejecting ${r.name}'s "${r.type}" request (the employee will see this):`, "");
+      if (note === null) return;
+    } else if (status === "Approved") {
+      note = prompt(`Optional note for ${r.name} (for example, when the certificate can be picked up):`, "") || "";
+    }
+    r.status = status;
+    if (note) r.hrNote = note;
+    r.handledBy = actor();
+    r.updated = new Date().toLocaleString();
+    write(ESS_KEY, all);
+    addNotification(`ESS request "${r.type}" from ${r.name} ${status.toLowerCase()}.`);
+    renderEss();
+  };
+
+  // =====================================================================
+  // EMPLOYEE RECORDS
+  // One page with everything HIMS knows about an employee: profile, leave,
+  // claims, attendance, overtime, ESS requests and internal applications.
+  // =====================================================================
+  let EMPLOYEES = [], current = null;
+  const fullName = (e) => `${e.first_name || ""} ${e.last_name || ""}`.trim() || e.name || "Unnamed";
+  const statusText = (s) => (s === "on_leave" ? "On Leave" : s === "active" ? "Active" : s ? String(s).replace(/^\w/, (c) => c.toUpperCase()) : "-");
+
+  async function loadRecords() {
+    $("recMsg").textContent = "Loading employees...";
+    try {
+      EMPLOYEES = (await apiRequest("employees")).records || [];
+      $("recMsg").textContent = "";
+    } catch (e) {
+      EMPLOYEES = [];
+      $("recMsg").textContent = e.message || "Employee records could not be loaded.";
+    }
+    renderRecordList();
+  }
+
+  function renderRecordList() {
+    const q = lower($("recSearch").value);
+    const rows = EMPLOYEES.filter((e) => lower([e.employee_code, fullName(e), e.department, e.position, e.email].join(" ")).includes(q));
+    $("recList").innerHTML = rows.length ? rows.map((e) => `<tr>
+        <td>${esc(e.employee_code)}</td>
+        <td><strong>${esc(fullName(e))}</strong><small>${esc(e.email || "")}</small></td>
+        <td>${esc(e.department || "-")}</td><td>${esc(e.position || "-")}</td><td>${esc(statusText(e.status))}</td>
+        <td><button type="button" onclick="openEmployeeRecord('${esc(e.employee_code)}')">Open record</button></td>
+      </tr>`).join("")
+      : '<tr><td colspan="6" class="table-empty">No matching employees.</td></tr>';
+  }
+  window.renderRecordList = renderRecordList;
+
+  function collect(e) {
+    const code = lower(e.employee_code), email = lower(e.email), name = lower(fullName(e));
+    const mine = (r) => (code && lower(r.id) === code) || (email && lower(r.email) === email) || (name && lower(r.name) === name && !r.id);
+    const days = (s, t) => { const a = C.parseDate(s), b = C.parseDate(t); return a && b ? Math.round((b - a) / 864e5) + 1 : 0; };
+    const leaves = safeRead("leaves").filter(mine);
+    const claims = safeRead("claims").filter(mine);
+    const attendance = safeRead("attendance").filter(mine);
+    const overtime = safeRead("requests").filter(mine);
+    const restdays = safeRead("restdays").filter(mine);
+    const ess = essAll().filter((r) => (code && lower(r.empId) === code) || (email && lower(r.email) === email));
+    return { leaves, claims, attendance, overtime, restdays, ess, leaveDays: leaves.reduce((t, l) => t + days(l.start, l.end), 0) };
+  }
+
+  async function internalApplications(e) {
+    try {
+      const apps = (await apiRequest("applications")).records || [];
+      return apps.filter((a) => lower(a.email) === lower(e.email) && e.email);
+    } catch (err) { return []; }
+  }
+
+  window.openEmployeeRecord = async function (code) {
+    const e = EMPLOYEES.find((x) => String(x.employee_code) === String(code)); if (!e) return;
+    const d = collect(e);
+    const apps = await internalApplications(e);
+    current = { e, d, apps };
+    const field = (label, value) => `<div><span>${esc(label)}</span><strong>${esc(value || "-")}</strong></div>`;
+    const table = (title, head, rows, emptyText) => `<section class="rec-section"><h4>${esc(title)} <small>(${rows.length})</small></h4>
+      <div class="hx-table-wrap"><table class="hx-score request-table"><thead><tr>${head.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>
+      <tbody>${rows.length ? rows.join("") : `<tr><td colspan="${head.length}" class="table-empty">${esc(emptyText)}</td></tr>`}</tbody></table></div></section>`;
+    const td = (...cells) => `<tr>${cells.map((c) => `<td>${c}</td>`).join("")}</tr>`;
+
+    $("recDetail").innerHTML = `
+      <div class="rec-head">
+        <div class="profile-avatar">${esc(fullName(e).split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase())}</div>
+        <div><h3>${esc(fullName(e))}</h3><p class="hx-sub">${esc(e.employee_code)} · ${esc(e.position || "No position")} · ${esc(e.department || "No department")}</p></div>
+        <div class="rec-actions">
+          <button type="button" onclick="printEmployeeRecord()">Print record</button>
+          <button type="button" onclick="downloadEmployeeRecord()">Download record</button>
+          <button type="button" class="secondary-action" onclick="closeEmployeeRecord()">Close</button>
+        </div>
+      </div>
+      <div class="rec-fields">
+        ${field("Employee ID", e.employee_code)}${field("Full name", fullName(e))}${field("Email", e.email)}${field("Contact", e.contact)}
+        ${field("Position", e.position)}${field("Department", e.department)}${field("Employment status", statusText(e.status))}${field("Date hired", e.hire_date)}
+        ${e.emergency_contact ? field("Emergency contact", e.emergency_contact) : ""}
+      </div>
+      <div class="hx-kpis" id="recKpis"></div>
+      ${table("Leave history", ["Type", "From", "To", "Status"], d.leaves.map((l) => td(esc(l.type), esc(l.start), esc(l.end), esc(l.status || "Submitted"))), "No leave on record.")}
+      ${table("Claims and reimbursements", ["Amount", "Date", "Status"], d.claims.map((c) => td(esc(peso(c.amount)), esc(c.date || "-"), pill(c.status || "Pending"))), "No claims on record.")}
+      ${table("Overtime requests", ["Hours", "Status"], d.overtime.map((o) => td(esc(o.hours), esc(o.status || "Pending"))), "No overtime on record.")}
+      ${table("Attendance", ["Date", "Time in", "Time out"], d.attendance.slice(-15).reverse().map((a) => td(esc(a.date), esc(a.timeIn || "-"), esc(a.timeOut || "-"))), "No attendance logged in HIMS.")}
+      ${table("Self-service (ESS) requests", ["Type", "Submitted", "Status"], d.ess.map((r) => td(esc(r.type), esc(r.created), pill(r.status))), "No ESS requests.")}
+      ${table("Internal applications", ["Vacancy", "Applied", "Status"], apps.map((a) => td(esc(a.vacancy || "-"), esc(a.date || "-"), esc(a.status))), "Has not applied to other positions.")}
+    `;
+    C.kpis($("recKpis"), [
+      { label: "Leave days taken", value: d.leaveDays },
+      { label: "Claims", value: d.claims.length, sub: peso(d.claims.reduce((t, c) => t + (Number(c.amount) || 0), 0)) },
+      { label: "Attendance logs", value: d.attendance.length },
+      { label: "ESS requests", value: d.ess.length, sub: `${d.ess.filter((r) => r.status === "Pending").length} pending` },
+      { label: "Internal applications", value: apps.length },
+    ]);
+    $("recDetail").hidden = false;
+    $("recDetail").scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  window.closeEmployeeRecord = function () { $("recDetail").hidden = true; current = null; };
+
+  window.printEmployeeRecord = function () {
+    if (!current) return;
+    // Print through a hidden frame: a pop-up window would be blocked after the password check.
+    const old = document.getElementById("recPrintFrame"); if (old) old.remove();
+    const frame = document.createElement("iframe");
+    frame.id = "recPrintFrame";
+    frame.setAttribute("aria-hidden", "true");
+    frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+    document.body.appendChild(frame);
+    const w = frame.contentWindow;
+    const styles = `body{font-family:Segoe UI,Arial,sans-serif;color:#111;margin:28px}h3{margin:0}h4{margin:22px 0 6px}small{color:#555}
+      .rec-head{display:flex;gap:14px;align-items:center;border-bottom:2px solid #0a8f63;padding-bottom:12px}.profile-avatar{width:48px;height:48px;border-radius:50%;background:#0a8f63;color:#fff;display:grid;place-items:center;font-weight:700}
+      .rec-actions,button{display:none}.rec-fields{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.rec-fields span{display:block;font-size:11px;color:#555}
+      .hx-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.hx-kpi{border:1px solid #ccc;border-radius:8px;padding:8px}.hx-kpi span,.hx-kpi small{display:block;font-size:11px;color:#555}.hx-kpi strong{font-size:18px}
+      table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:5px 7px;text-align:left}th{background:#eef5f2}.hx-pill{font-weight:700}
+      .hx-sub{margin:2px 0 0;color:#555}footer{margin-top:26px;font-size:11px;color:#555}`;
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Employee record - ${esc(fullName(current.e))}</title><style>${styles}</style></head>
+      <body><p style="font-size:12px;color:#555;margin:0 0 10px">HIMS Hospital System · Confidential employee record</p>${$("recDetail").innerHTML}
+      <footer>Printed ${esc(new Date().toLocaleString())} by ${esc(actor())}.</footer><\/body><\/html>`);
+    w.document.close();
+    setTimeout(() => { w.focus(); w.print(); }, 300);
+  };
+
+  window.downloadEmployeeRecord = function () {
+    if (!current) return;
+    const { e, d, apps } = current;
+    const rows = [["HIMS EMPLOYEE RECORD"], ["Generated", new Date().toLocaleString()], [],
+      ["Employee ID", e.employee_code], ["Full name", fullName(e)], ["Email", e.email || ""], ["Contact", e.contact || ""],
+      ["Position", e.position || ""], ["Department", e.department || ""], ["Status", statusText(e.status)], ["Date hired", e.hire_date || ""], [],
+      ["LEAVE"], ["Type", "From", "To", "Status"], ...d.leaves.map((l) => [l.type, l.start, l.end, l.status || "Submitted"]), [],
+      ["CLAIMS"], ["Amount", "Date", "Status"], ...d.claims.map((c) => [c.amount, c.date || "", c.status || "Pending"]), [],
+      ["OVERTIME"], ["Hours", "Status"], ...d.overtime.map((o) => [o.hours, o.status || "Pending"]), [],
+      ["ATTENDANCE"], ["Date", "Time in", "Time out"], ...d.attendance.map((a) => [a.date, a.timeIn || "", a.timeOut || ""]), [],
+      ["ESS REQUESTS"], ["Type", "Details", "Submitted", "Status"], ...d.ess.map((r) => [r.type, r.details || "", r.created, r.status]), [],
+      ["INTERNAL APPLICATIONS"], ["Vacancy", "Applied", "Status"], ...apps.map((a) => [a.vacancy || "", a.date || "", a.status])];
+    const csv = rows.map((r) => r.map((c) => `"${String(c == null ? "" : c).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+    a.download = `employee-record-${e.employee_code}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    addNotification(`Employee record for ${fullName(e)} downloaded.`);
+  };
+
+  // =====================================================================
+  // Password protection for every download on this page
+  // =====================================================================
+  const S = window.HimsSecure;
+  if (S) {
+    S.protect("exportReports", "the HR system report");
+    S.protect("exportEmployeeDirectory", "the employee directory");
+    S.protect("exportAuditLog", "the audit log");
+    S.protect("exportSuperAudit", "the security audit");
+    S.protect("downloadEmployeeRecord", () => (current ? `the record of ${fullName(current.e)}` : "the employee record"));
+    S.protect("printEmployeeRecord", () => (current ? `a printable record of ${fullName(current.e)}` : "the employee record"));
+  }
+
+  // ---------------------------------------------------------------------
+  // Navigation hooks
+  // ---------------------------------------------------------------------
+  const prevShow = window.showModule;
+  window.showModule = function (id) {
+    prevShow(id);
+    if (id === "essadmin") renderEss();
+    if (id === "records") loadRecords();
+  };
+  window.renderEss = renderEss;
+  window.addEventListener("storage", (e) => { if (e.key === ESS_KEY && $("essadmin") && $("essadmin").style.display === "block") renderEss(); });
+})();
+
+</script>
+<script>
+// Onboarding page (HR): checklist for every applicant marked Hired, saved in MySQL via backend/api.php?resource=onboarding.
+// HR Staff and Admin tick items; HR Officer and Admin approve completion. "Account" and "Training" tick themselves.
+(function () {
+  const C = window.HimsCharts;
+  const $ = (id) => document.getElementById(id);
+  const esc = C.esc;
+  const role = () => { try { return (JSON.parse(localStorage.getItem("currentUser") || "null") || {}).role || ""; } catch (e) { return ""; } };
+  const canTick = () => ["HR1", "HR3", "ADMIN", "HR_STAFF"].includes(role());
+  const canApprove = () => ["HR1", "HR3", "ADMIN", "HR_OFFICER"].includes(role());
+  const toast = (m) => (window.showWarningToast || alert)(m);
+  // Onboarding older than this many days (from the hire date) counts as overdue. Set in Super Admin > Settings.
+  const overdueDays = () => (window.himsNumber && window.himsNumber("onboarding_overdue_days")) || 30;
+  let RECORDS = [], openId = null, loadError = "";
+
+  const send = (body) => apiRequest("onboarding", { method: "POST", body: JSON.stringify(body) });
+  const daysSince = (d) => { const x = C.parseDate(d); return x ? Math.floor((Date.now() - x.getTime()) / 864e5) : 0; };
+  const isOverdue = (r) => r.status !== "Completed" && daysSince(r.startDate || r.created) > overdueDays();
+  const pct = (r) => Math.round((r.done / (r.total || 1)) * 100);
+
+  async function load() {
+    try {
+      RECORDS = (await apiRequest("onboarding")).records || [];
+      loadError = "";
+    } catch (e) {
+      RECORDS = [];
+      loadError = /1146|table is missing/i.test(e.message) ? "The onboarding tables are not in the database yet. Run database/015_onboarding.sql in phpMyAdmin." : (e.message || "Onboarding could not be loaded.");
+    }
+    return RECORDS;
+  }
+  window.loadOnboardingRecords = load;
+  window.onboardingRecords = () => RECORDS;
+
+  function render() {
+    if (!$("onbList")) return;
+    const showArchived = $("onbShowArchived").checked;
+    const filter = $("onbFilter").value, q = String($("onbSearch").value || "").toLowerCase();
+    const active = RECORDS.filter((r) => !r.archived);
+    const inProgress = active.filter((r) => r.status !== "Completed");
+    const ready = inProgress.filter((r) => r.done === r.total);
+    C.kpis($("onbKpis"), [
+      { label: "In onboarding", value: inProgress.length },
+      { label: "Ready for approval", value: ready.length, sub: "All items done", tone: ready.length ? "watch" : "main" },
+      { label: "Overdue", value: inProgress.filter(isOverdue).length, sub: `Over ${overdueDays()} days`, tone: inProgress.some(isOverdue) ? "bad" : "main" },
+      { label: "Completed", value: active.filter((r) => r.status === "Completed").length, tone: "good" },
+      { label: "Average progress", value: inProgress.length ? Math.round(inProgress.reduce((t, r) => t + pct(r), 0) / inProgress.length) + "%" : "-" },
+    ]);
+    $("onbMsg").textContent = loadError;
+    const rows = RECORDS.filter((r) => !!r.archived === showArchived)
+      .filter((r) => filter === "All" || (filter === "Ready" ? r.status !== "Completed" && r.done === r.total : filter === "Overdue" ? isOverdue(r) : r.status === filter))
+      .filter((r) => [r.name, r.email, r.position, r.department].join(" ").toLowerCase().includes(q));
+    $("onbList").innerHTML = rows.length ? rows.map(card).join("")
+      : `<p class="hx-empty">${loadError ? esc(loadError) : showArchived ? "No archived onboarding records." : "No one is in onboarding. When HR marks an applicant Hired, they appear here automatically."}</p>`;
+  }
+  window.renderOnboarding = render;
+
+  function card(r) {
+    const p = pct(r), open = openId === r.id, complete = r.status === "Completed";
+    const status = complete ? '<span class="hx-pill hx-pill-good">Completed</span>'
+      : r.done === r.total ? '<span class="hx-pill hx-pill-watch">Ready for approval</span>'
+      : isOverdue(r) ? '<span class="hx-pill hx-pill-bad">Overdue</span>' : '<span class="hx-pill hx-pill-na">In progress</span>';
+    const tick = canTick() && !complete && !r.archived;
+    const items = r.items.map((i) => `<li class="onb-item${i.done ? " is-done" : ""}">
+        <label><input type="checkbox" ${i.done ? "checked" : ""} ${tick && !i.auto ? "" : "disabled"} onchange="tickOnboarding(${r.id}, '${esc(i.key)}', this.checked)">
+        <span>${esc(i.label)}${i.auto ? ' <small class="onb-auto">automatic</small>' : ""}</span></label>
+        <small>${i.done ? esc([i.doneBy, i.doneAt].filter(Boolean).join(" · ")) : ""}${i.note ? ` · ${esc(i.note)}` : ""}</small></li>`).join("");
+    const actions = [];
+    if (!r.archived && !complete && canApprove()) actions.push(`<button type="button" ${r.done === r.total ? "" : "disabled title=\"Finish every item first\""} onclick="completeOnboarding(${r.id})">Approve onboarding complete</button>`);
+    if (!r.archived && complete && canApprove()) actions.push(`<button type="button" class="secondary-action" onclick="onboardingAction(${r.id}, 'reopen')">Reopen</button>`);
+    if (canApprove()) actions.push(`<button type="button" class="secondary-action" onclick="onboardingAction(${r.id}, '${r.archived ? "restore" : "archive"}')">${r.archived ? "Restore" : "Archive"}</button>`);
+    return `<article class="onb-card${open ? " is-open" : ""}">
+      <button type="button" class="onb-head" onclick="toggleOnboarding(${r.id})" aria-expanded="${open}">
+        <span class="onb-who"><strong>${esc(r.name)}</strong><small>${esc(r.position || "No position")} · ${esc(r.department || "No department")} · ${esc(r.email)}</small></span>
+        <span class="onb-progress"><span class="hx-bar-track"><i class="hx-fill ${complete ? "hx-tone-good" : ""}" style="width:${p}%"></i></span><small>${r.done} of ${r.total}</small></span>
+        ${status}
+      </button>
+      ${open ? `<div class="onb-body">
+        <div class="onb-meta">
+          <label>Start date <input type="date" value="${esc(r.startDate || "")}" ${tick || canApprove() ? "" : "disabled"} onchange="onboardingStartDate(${r.id}, this.value)"></label>
+          <span>Hired: ${esc(r.created || "-")}</span>
+          ${complete ? `<span>Approved by ${esc(r.completedBy || "-")} on ${esc(r.completedAt || "-")}</span>` : ""}
+        </div>
+        <ul class="onb-items">${items}</ul>
+        <p class="onb-hint">${complete ? "Onboarding is complete. Super Admin can now change this trainee's account to Employee in Accounts & Roles."
+          : canTick() ? "Tick each item when it's done. \"Account\" ticks itself when Super Admin creates the trainee account, and \"Training\" when training is marked Completed."
+          : "HR Staff tick the items. When everything is done, approve onboarding as complete."}</p>
+        ${actions.length ? `<div class="onb-actions">${actions.join("")}</div>` : ""}
+      </div>` : ""}
+    </article>`;
+  }
+
+  window.toggleOnboarding = (id) => { openId = openId === id ? null : id; render(); };
+  async function refresh() { await load(); render(); if (window.refreshAdminAnalytics && $("dashboard-panel").style.display === "block") window.refreshAdminAnalytics(); }
+  window.tickOnboarding = async (id, key, done) => {
+    let note = "";
+    if (done && key === "contract") note = prompt("Optional note (for example, date signed):", "") || "";
+    try { await send({ action: "tick", id, key, done, note }); }
+    catch (e) { toast(e.message); }
+    await refresh();
+  };
+  window.onboardingStartDate = async (id, date) => {
+    try { await send({ action: "start-date", id, date }); showSuccessToast("Start date saved."); } catch (e) { toast(e.message); }
+    await refresh();
+  };
+  window.completeOnboarding = async (id) => {
+    const r = RECORDS.find((x) => x.id === id); if (!r) return;
+    if (!confirm(`Approve onboarding for ${r.name} as complete?`)) return;
+    try { await send({ action: "complete", id }); addNotification(`Onboarding for ${r.name} approved as complete.`); } catch (e) { toast(e.message); }
+    await refresh();
+  };
+  window.onboardingAction = async (id, action) => {
+    const r = RECORDS.find((x) => x.id === id); if (!r) return;
+    const words = { archive: "Archive", restore: "Restore", reopen: "Reopen" };
+    if (!confirm(`${words[action]} onboarding for ${r.name}?`)) return;
+    try { await send({ action, id }); addNotification(`Onboarding for ${r.name}: ${action === "archive" ? "archived" : action === "restore" ? "restored" : "reopened"}.`); } catch (e) { toast(e.message); }
+    if (action === "archive") openId = null;
+    await refresh();
+  };
+
+  const prevShow = window.showModule;
+  window.showModule = function (id) {
+    prevShow(id);
+    if (id === "onboarding") { $("onbList").innerHTML = '<p class="hx-empty">Loading onboarding...</p>'; load().then(render); }
+  };
+})();
+
+</script>
+<script>
+// Super Admin tools on System Overview: pending actions, sign-in activity, system health, database backups.
+// Plus: locked accounts get an Unlock button (see super-admin.js). Data comes from backend/api.php?resource=super-admin.
+(function () {
+  const C = window.HimsCharts;
+  const $ = (id) => document.getElementById(id);
+  const esc = C.esc;
+  const view = (name) => apiRequest("super-admin", { query: { view: name } });
+  const toast = (m) => (window.showWarningToast || alert)(m);
+  const bytes = (n) => (n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : n >= 1024 ? Math.round(n / 1024) + " KB" : (n || 0) + " B");
+  const uptime = (s) => (s == null ? "Not available" : s >= 86400 ? `${Math.floor(s / 86400)} day(s) ${Math.floor((s % 86400) / 3600)} hr` : `${Math.floor(s / 3600)} hr ${Math.floor((s % 3600) / 60)} min`);
+
+  // ---------- Pending actions ----------
+  async function renderPending() {
+    if (!$("saPending")) return;
+    let groups;
+    try { groups = (await view("pending")).groups || []; }
+    catch (e) { $("saPending").innerHTML = `<p class="hx-empty">${esc(e.message || "Pending actions could not be loaded.")}</p>`; return; }
+    const total = groups.reduce((t, g) => t + g.items.length, 0);
+    $("saPendingCount").textContent = total ? `${total} item(s) need your attention` : "Nothing needs your attention";
+    $("saPendingCount").className = "hx-pill " + (total ? "hx-pill-watch" : "hx-pill-good");
+    const shown = groups.filter((g) => g.items.length);
+    $("saPending").innerHTML = shown.length ? shown.map((g) => `<section class="sa-group sa-tone-${esc(g.tone)}">
+        <h5>${esc(g.title)} <span>${g.items.length}</span></h5>
+        <ul>${g.items.slice(0, 5).map((i) => `<li><span><strong>${esc(i.name)}</strong><small>${esc(i.detail || "")}</small></span>
+          <button type="button" class="sa-act" onclick="saPendingAction('${esc(g.key)}', ${Number(i.id)}, '${esc(String(i.name).replace(/'/g, ""))}')">${esc(g.action)}</button></li>`).join("")}</ul>
+        ${g.items.length > 5 ? `<p class="hx-note">and ${g.items.length - 5} more</p>` : ""}
+      </section>`).join("")
+      : '<p class="hx-empty">All caught up: no hired applicants waiting, no locked accounts, nothing to approve.</p>';
+  }
+
+  window.saPendingAction = async function (key, id, name) {
+    if (key === "unlock") return; // not used
+    if (key === "locked") {
+      if (!confirm(`Unlock the account of ${name}? They can sign in again right away.`)) return;
+      try { await apiRequest("super-admin", { method: "POST", body: JSON.stringify({ action: "unlock", id }) }); showSuccessToast(`${name} unlocked.`); }
+      catch (e) { toast(e.message); }
+      renderPending(); if (window.loadSuperAdminAccounts) window.loadSuperAdminAccounts();
+      return;
+    }
+    showModule("super-accounts");
+    if (window.loadSuperAdminAccounts) await window.loadSuperAdminAccounts();
+    if (key === "hired") {
+      // Pre-select the Trainee role and the accepted application in the create-account form.
+      $("superRole").value = "TRAINEE";
+      $("superRole").dispatchEvent(new Event("change"));
+      setTimeout(() => {
+        const sel = $("superAcceptedApplication");
+        if (sel && [...sel.options].some((o) => Number(o.value) === id)) { sel.value = String(id); sel.dispatchEvent(new Event("change")); }
+        $("superAccountForm").scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 700);
+      return;
+    }
+    // promote / approval / never: show the account in the list
+    $("superAccountSearch").value = name;
+    $("superAccountSearch").dispatchEvent(new Event("input"));
+    setTimeout(() => $("superAccountsTable").scrollIntoView({ behavior: "smooth", block: "center" }), 150);
+    if (key === "promote") showSuccessToast(`Change ${name}'s role to Employee in the Role column.`);
+  };
+
+  // ---------- Sign-in activity ----------
+  async function renderSignins() {
+    if (!$("saSignins")) return;
+    let data;
+    try { data = await view("signins"); }
+    catch (e) { $("saSignins").innerHTML = `<p class="hx-empty">${esc(e.message)}</p>`; return; }
+    const byDay = Object.fromEntries((data.days || []).map((d) => [d.day, d]));
+    const points = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const row = byDay[key] || {};
+      points.push({ label: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }), values: [Number(row.ok) || 0, Number(row.failed) || 0] });
+    }
+    C.columns($("saSignins"), points, [{ name: "Successful", tone: "good" }, { name: "Failed", tone: "bad" }], { empty: "No sign-ins in the last 14 days." });
+    const ok = points.reduce((t, p) => t + p.values[0], 0), bad = points.reduce((t, p) => t + p.values[1], 0);
+    const top = data.topFailed || [];
+    $("saSigninNotes").innerHTML = `<ul class="hx-insights">
+      <li class="hx-insight-${bad > ok ? "bad" : "main"}">${ok} successful and ${bad} failed sign-in(s) in the last 14 days${ok + bad ? ` (${Math.round((bad / (ok + bad)) * 100)}% failed)` : ""}.</li>
+      ${top.length ? `<li class="hx-insight-watch">Most failed in the last 24 hours: ${top.map((t) => `${esc(t.email)} (${Number(t.failed)})`).join(", ")}.</li>` : '<li class="hx-insight-good">No failed sign-ins in the last 24 hours.</li>'}
+      <li>An account locks after ${esc(window.himsSetting ? window.himsSetting("lock_max_failures") : 5)} failed sign-ins within ${esc(window.himsSetting ? window.himsSetting("lock_minutes") : 5)} minutes. It unlocks by itself after that time, or a Super Admin can unlock it. Change this in Settings.</li>
+    </ul>`;
+  }
+
+  // ---------- System health ----------
+  async function renderHealth() {
+    if (!$("saHealth")) return;
+    let h;
+    try { h = (await view("health")).health; }
+    catch (e) { $("saHealth").innerHTML = `<p class="hx-empty">${esc(e.message)}</p>`; return; }
+    const where = h.fallback ? "Local (backup, cloud unavailable)" : h.mode === "cloud" ? "Cloud" : "Local";
+    const row = (label, value, tone) => `<div><span>${esc(label)}</span><strong class="${tone ? "sa-" + tone : ""}">${esc(value)}</strong></div>`;
+    $("saHealth").innerHTML = `<div class="sa-health">
+      ${row("Database", where, h.fallback ? "watch" : "good")}
+      ${row("Server", `${h.name || "-"} on ${h.host || "-"}`)}
+      ${row("MySQL version", h.version || "-")}
+      ${row("PHP version", h.php || "-")}
+      ${row("Tables / size", `${h.tables} tables · ${bytes(h.sizeBytes)}`)}
+      ${row("Database uptime", uptime(h.uptimeSeconds))}
+      <div><span>Server time</span><strong id="saServerClock">${esc(h.serverTime)} (${esc(h.timezone)})</strong></div>
+      ${row("Last backup", h.backupsReady ? (h.lastBackup || "Never") : "Run 016_superadmin_tools.sql", h.lastBackup ? "" : "watch")}
+    </div>`;
+    startServerClock(h);
+  }
+
+  // Server time keeps ticking every second, starting from the server's own clock and time zone.
+  let serverClockTimer = null;
+  function startServerClock(h) {
+    clearInterval(serverClockTimer);
+    if (!h.serverEpoch) return;
+    const offset = Number(h.serverEpoch) * 1000 - Date.now(); // difference between server and this computer
+    let fmt;
+    try {
+      fmt = new Intl.DateTimeFormat("en-US", { timeZone: h.timezone, year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
+    } catch (e) { return; } // unknown time zone name: keep the static time
+    const tick = () => {
+      const el = $("saServerClock");
+      if (!el) { clearInterval(serverClockTimer); return; }
+      const p = Object.fromEntries(fmt.formatToParts(new Date(Date.now() + offset)).map((x) => [x.type, x.value]));
+      el.textContent = `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}:${p.second} ${p.dayPeriod} (${h.timezone})`;
+    };
+    tick();
+    serverClockTimer = setInterval(tick, 1000);
+  }
+
+  // ---------- Backups ----------
+  async function renderBackups() {
+    if (!$("saBackups")) return;
+    let data;
+    try { data = await view("backups"); } catch (e) { data = { records: [], ready: false }; }
+    $("saBackups").innerHTML = data.records.length ? `<div class="hx-table-wrap"><table class="hx-score request-table">
+        <thead><tr><th>Date</th><th>File</th><th>Size</th><th>Contents</th><th>By</th></tr></thead>
+        <tbody>${data.records.map((b) => `<tr><td>${esc(b.created)}</td><td>${esc(b.fileName)}<small>${esc(b.mode === "cloud" ? "Cloud database" : "Local database")}</small></td>
+          <td>${bytes(Number(b.sizeBytes))}</td><td>${Number(b.tables)} tables, ${Number(b.rowCount).toLocaleString()} rows</td><td>${esc(b.createdBy || "-")}</td></tr>`).join("")}</tbody></table></div>`
+      : `<p class="hx-empty">${data.ready ? "No backups yet. Download your first one before the defense." : "Backup history needs database/016_superadmin_tools.sql. You can still download a backup."}</p>`;
+  }
+
+  window.downloadDatabaseBackup = async function () {
+    const password = window.HimsSecure ? await window.HimsSecure.askPassword("a full backup of the HIMS database") : prompt("Enter your password");
+    if (!password) return;
+    const button = $("saBackupButton");
+    button.disabled = true; button.textContent = "Preparing backup...";
+    try {
+      const res = await fetch(`${apiUrl}?resource=super-admin`, {
+        method: "POST", credentials: apiUsesCredentials ? "include" : "same-origin",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "backup", password }),
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || "The backup could not be created."); }
+      const blob = await res.blob();
+      const name = (/filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") || "") || [])[1] || "hims-backup.sql";
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      showSuccessToast(`Backup ${name} downloaded.`);
+      renderBackups(); renderHealth();
+    } catch (e) { toast(e.message); }
+    finally { button.disabled = false; button.textContent = "Download backup"; }
+  };
+
+  function renderAll() { renderPending(); renderSignins(); renderHealth(); renderBackups(); }
+  window.refreshSuperTools = renderAll;
+
+  // Refresh whenever System Overview is opened (including right after login).
+  const prevShow = window.showModule;
+  window.showModule = function (id) { prevShow(id); if (id === "super-overview") renderAll(); };
+})();
+
+</script>
+<script>
+// HR Staff and HR Officer workspaces.
+//   HR Staff   = encodes and processes: leave, overtime, claims, applicant screening,
+//                interviews, preparing approved ESS requests. Cannot approve or make hiring decisions.
+//   HR Officer = reviews and approves: claims, overtime, ESS requests, hiring decisions, hire orders;
+//                sees analytics, reports and the audit log. Does not encode day-to-day records.
+//   Admin (HR1 / HR3 / ADMIN) keeps full access to everything.
+// Needs script.js, admin-modules.js, hims-charts.js, hims-analytics.js, hims-hr.js (load this last).
+(function () {
+  const C = window.HimsCharts;
+  const $ = (id) => document.getElementById(id);
+  const esc = C.esc;
+  const peso = (n) => "₱" + Number(n || 0).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const safeRead = (key) => { try { return read(key); } catch (e) { return []; } };
+  const toast = (m) => (window.showWarningToast || alert)(m);
+
+  // ---------------------------------------------------------------------
+  // Who can open which page
+  // ---------------------------------------------------------------------
+  const ADMIN_ROLES = ["HR1", "HR3", "ADMIN"];
+  const ROLE_INFO = {
+    HR_STAFF: {
+      label: "HR Staff", title: "HR STAFF WORKSPACE", avatar: "HS", home: "staff-home",
+      welcome: "Encode leave, overtime and claims, screen applicants, schedule interviews, and prepare approved employee requests.",
+      modules: ["staff-home", "leave", "timesheet", "claims", "search", "empdir", "records", "essadmin", "vacancies", "applicants", "interview", "onboarding", "filex"],
+    },
+    HR_OFFICER: {
+      label: "HR Officer", title: "HR OFFICER WORKSPACE", avatar: "HO", home: "officer-home",
+      welcome: "Review and approve claims, overtime, employee requests and hiring decisions, and monitor HR performance.",
+      modules: ["officer-home", "dashboard-panel", "claims", "approval", "tkapprovals", "essadmin", "vacancies", "applicants", "interview", "onboarding", "records", "empdir", "search", "auditlog", "filex"],
+    },
+  };
+  // What each role may do. Admin roles may do everything.
+  const CAN = {
+    HR_STAFF: ["encode", "screen", "interview", "ess-complete", "add-applicant"],
+    HR_OFFICER: ["approve-claim", "approve-overtime", "ess-decide", "ess-complete", "hire-decision", "manage-vacancy", "archive-applicant", "export", "interview"],
+  };
+  const STAFF_APP_STATUSES = ["Applied", "Screening", "Interview"];
+
+  const user = () => { try { return JSON.parse(localStorage.getItem("currentUser") || "null"); } catch (e) { return null; } };
+  const role = () => (user() || {}).role || "";
+  const can = (cap) => ADMIN_ROLES.includes(role()) || (CAN[role()] || []).includes(cap);
+  window.HimsRoles = { can, role, ROLE_INFO };
+
+  // Block an action the current role may not do. Returns true when allowed.
+  function allow(cap, message) {
+    if (can(cap)) return true;
+    toast(message || "Your role cannot do this. Ask an HR Officer or Admin.");
+    return false;
+  }
+  function guard(name, cap, message, check) {
+    const original = window[name];
+    if (typeof original !== "function") return;
+    window[name] = function (...args) {
+      if (check ? !check(...args) : !allow(cap, message)) return;
+      return original.apply(this, args);
+    };
+  }
+
+  // Approvals: only HR Officer and Admin
+  guard("updateClaimStatus", "approve-claim", "Claims are approved by an HR Officer.");
+  guard("approve", "approve-overtime", "Overtime requests are approved by an HR Officer.");
+  guard("setVacancyStatus", "manage-vacancy", "Hire orders are published or declined by an HR Officer.");
+  guard("archiveVacancy", "manage-vacancy", "Only an HR Officer or Admin can archive hire orders.");
+  guard("editVacancyQualifications", "manage-vacancy", "Job qualifications are set by an HR Officer or Admin.");
+  guard("openJobBoards", "manage-vacancy", "Jobs are posted to LinkedIn and JobStreet by an HR Officer or Admin.");
+  guard("archiveApplicant", "archive-applicant", "Only an HR Officer or Admin can archive applicants.");
+  guard("exportReports", "export", "Reports are exported by an HR Officer or Admin.");
+  guard("decideEss", null, null, (id, status) => (status === "Completed"
+    ? allow("ess-complete") : allow("ess-decide", "ESS requests are approved or rejected by an HR Officer.")));
+  guard("setApplicantStatus", null, null, (id, status) => {
+    if (can("hire-decision")) return true;
+    if (STAFF_APP_STATUSES.includes(status)) return true;
+    toast(`HR Staff can move applicants up to Interview. "${status}" is decided by an HR Officer.`);
+    if (window.renderApplicants) window.renderApplicants();
+    return false;
+  });
+  // Encoding: Staff and Admin. Officers review instead of encoding.
+  ["timeIn", "timeOut", "addRestDay", "submitLeave", "requestOT", "submitClaim"].forEach((fn) =>
+    guard(fn, "encode", "HR Officers review records; HR Staff encode them."));
+  guard("addApplicant", "add-applicant", "Applicants are added by HR Staff or Admin.");
+  guard("addInterview", "interview", "Your role cannot schedule interviews.");
+
+  // ---------------------------------------------------------------------
+  // Apply the workspace for the signed-in role
+  // ---------------------------------------------------------------------
+  // Sidebar groups for each workspace (Super Admin has its own menu in index.html).
+  const NAV_GROUPS = {
+    ADMIN: [
+      ["Overview", ["dashboard-panel"]],
+      ["Workforce", ["claims", "search", "empdir", "records", "essadmin", "approval", "tkapprovals"]],
+      ["Recruitment", ["vacancies", "applicants", "interview", "onboarding"]],
+      ["Integration", ["filex"]],
+      ["Tools", ["trainai", "auditlog"]],
+    ],
+    HR_STAFF: [
+      ["My work", ["staff-home"]],
+      ["Timekeeping", ["leave", "timesheet", "claims"]],
+      ["Employees", ["search", "empdir", "records", "essadmin"]],
+      ["Recruitment", ["vacancies", "applicants", "interview", "onboarding"]],
+      ["Integration", ["filex"]],
+    ],
+    HR_OFFICER: [
+      ["Decisions", ["officer-home", "claims", "approval", "tkapprovals", "essadmin"]],
+      ["Reports", ["dashboard-panel", "auditlog"]],
+      ["Employees", ["search", "empdir", "records"]],
+      ["Recruitment", ["vacancies", "applicants", "interview", "onboarding"]],
+      ["Integration", ["filex"]],
+    ],
+  };
+  function groupNav(nav, r) {
+    const groups = NAV_GROUPS[r] || NAV_GROUPS.ADMIN;
+    nav.querySelectorAll(".nav-heading").forEach((h) => h.remove());
+    const buttons = Object.fromEntries([...nav.querySelectorAll(".nav-item")].map((b) => [b.dataset.module, b]));
+    const placed = new Set();
+    groups.forEach(([title, modules]) => {
+      const visible = modules.map((m) => buttons[m]).filter((b) => b && !b.hidden);
+      if (!visible.length) return;
+      const heading = document.createElement("span");
+      heading.className = "nav-heading"; heading.textContent = title;
+      nav.appendChild(heading);
+      visible.forEach((b) => { nav.appendChild(b); placed.add(b.dataset.module); });
+    });
+    Object.values(buttons).forEach((b) => { if (!placed.has(b.dataset.module)) nav.appendChild(b); }); // hidden or unlisted ones last
+  }
+
+  function applyRole() {
+    const r = role(), info = ROLE_INFO[r];
+    document.body.classList.remove("role-hr-staff", "role-hr-officer", "role-admin");
+    const nav = document.querySelector("[data-admin-nav]");
+    if (!nav) return;
+    nav.querySelectorAll(".nav-item").forEach((b) => {
+      const m = b.dataset.module;
+      const roleOnly = b.dataset.roles ? b.dataset.roles.split(",") : null;
+      b.hidden = info ? !info.modules.includes(m) : !!(roleOnly && !roleOnly.includes("ADMIN"));
+    });
+    groupNav(nav, info ? r : "ADMIN");
+    if (!info) { document.body.classList.add("role-admin"); return; }
+    document.body.classList.add(r === "HR_STAFF" ? "role-hr-staff" : "role-hr-officer");
+    const u = user() || {};
+    $("workspaceTitle").textContent = info.title;
+    document.querySelector("#workspaceWelcome h2").textContent = `Welcome back, ${String(u.name || info.label).split(" ")[0]}`;
+    document.querySelector("#workspaceWelcome p").textContent = info.welcome;
+    document.querySelector(".user-meta strong").textContent = u.name || info.label;
+    document.querySelector(".user-meta span").textContent = info.label;
+    document.querySelector("#profileButton .user-avatar").textContent = info.avatar;
+    document.querySelector(".profile-summary .profile-avatar").textContent = info.avatar;
+    document.querySelector(".profile-summary span").textContent = "HIMS " + info.label;
+    const details = document.querySelectorAll(".profile-details strong");
+    if (details[0]) details[0].textContent = info.label;
+    if (details[1]) details[1].textContent = r === "HR_STAFF" ? "Encoding and processing" : "Review and approval";
+    window.showModule(info.home);
+  }
+  window.applyHimsRole = applyRole;
+
+  const prevShow = window.showModule;
+  window.showModule = function (id) {
+    const info = ROLE_INFO[role()];
+    if (info && !info.modules.includes(id) && !id.startsWith("super-")) id = info.home;
+    prevShow(id);
+    const welcome = document.querySelector(".welcome-panel");
+    if (welcome && (id === "staff-home" || id === "officer-home")) welcome.style.display = "block";
+    if (id === "staff-home") renderStaffHome();
+    if (id === "officer-home") renderOfficerHome();
+    if (id === "leave" && typeof showLeaves === "function") { showLeaves(); showLeaveBalances(); }
+    if (id === "timesheet" && typeof showRequests === "function") showRequests();
+  };
+
+  // ---------------------------------------------------------------------
+  // Shared data loaders
+  // ---------------------------------------------------------------------
+  async function api(resource) { try { return (await apiRequest(resource)).records || []; } catch (e) { return null; } }
+  const todayKey = () => new Date().toISOString().slice(0, 10);
+  const go = (module, label) => `<button type="button" class="hx-link" onclick="showModule('${module}')">${esc(label)}</button>`;
+
+  // =====================================================================
+  // HR STAFF HOME: "My work today"
+  // =====================================================================
+  async function renderStaffHome() {
+    if (!$("staffKpis")) return;
+    const apps = (await api("applications")) || [];
+    const active = apps.filter((a) => !Number(a.archived));
+    const toScreen = active.filter((a) => a.status === "Applied");
+    const screening = active.filter((a) => a.status === "Screening");
+    const interviews = safeRead("interviews").filter((i) => !i.archived && i.status === "Scheduled");
+    const today = todayKey();
+    const todays = interviews.filter((i) => i.date === today);
+    const upcoming = interviews.filter((i) => i.date >= today).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+    const ess = safeRead("essRequests");
+    const toPrepare = ess.filter((r) => r.status === "Approved");
+    const todayText = new Date().toLocaleDateString();
+    const claimsToday = safeRead("claims").filter((c) => String(c.date || "").startsWith(todayText));
+
+    C.kpis($("staffKpis"), [
+      { label: "Applications to screen", value: toScreen.length, sub: "Status: Applied", tone: toScreen.length ? "watch" : "main" },
+      { label: "In screening", value: screening.length },
+      { label: "Interviews today", value: todays.length, sub: `${upcoming.length} upcoming` },
+      { label: "Approved requests to prepare", value: toPrepare.length, sub: "ESS approved by Officer", tone: toPrepare.length ? "watch" : "main" },
+      { label: "Claims encoded today", value: claimsToday.length },
+    ]);
+
+    const tasks = [];
+    if (toScreen.length) tasks.push({ text: `Screen ${toScreen.length} new application(s): ${toScreen.slice(0, 3).map((a) => a.name).join(", ")}${toScreen.length > 3 ? ", ..." : ""}.`, module: "applicants", action: "Open Applications", tone: "watch" });
+    if (todays.length) tasks.push({ text: `${todays.length} interview(s) today. Update their status and result after each one.`, module: "interview", action: "Open Interviews", tone: "watch" });
+    if (toPrepare.length) tasks.push({ text: `Prepare ${toPrepare.length} approved employee request(s) (for example, print the COE), then mark them Completed.`, module: "essadmin", action: "Open ESS Requests", tone: "watch" });
+    const onb = window.loadOnboardingRecords ? ((await window.loadOnboardingRecords()) || []).filter((r) => !r.archived && r.status !== "Completed") : [];
+    const onbOpen = onb.filter((r) => r.done < r.total);
+    if (onbOpen.length) tasks.push({ text: `${onbOpen.length} new hire(s) still have onboarding items to finish: ${onbOpen.slice(0, 3).map((r) => r.name).join(", ")}${onbOpen.length > 3 ? ", ..." : ""}.`, module: "onboarding", action: "Open Onboarding", tone: "watch" });
+    if (screening.length) tasks.push({ text: `${screening.length} applicant(s) are in screening. Move qualified ones to Interview.`, module: "applicants", action: "Open Applications" });
+    $("staffTasks").innerHTML = tasks.length ? `<ul class="hx-insights">${tasks.map((t) => `<li class="hx-insight-${t.tone || "main"}">${esc(t.text)} ${go(t.module, t.action)}</li>`).join("")}</ul>`
+      : '<p class="hx-empty">You\'re all caught up. Nothing is waiting for you right now.</p>';
+
+    $("staffInterviews").innerHTML = upcoming.length ? upcoming.slice(0, 8).map((i) => `<tr><td><strong>${esc(i.name)}</strong><small>${esc(i.vacancy || "")}</small></td>
+        <td>${esc(i.date === today ? "Today" : i.date)} ${esc(i.time)}</td><td>${esc(i.interviewer)}</td><td>${esc(i.mode)}</td></tr>`).join("")
+      : '<tr><td colspan="4" class="table-empty">No interviews scheduled.</td></tr>';
+
+    $("staffPrepare").innerHTML = toPrepare.length ? toPrepare.slice(0, 8).map((r) => `<tr><td><strong>${esc(r.name)}</strong><small>${esc(r.empId || "")}</small></td>
+        <td>${esc(r.type)}</td><td>${esc(r.hrNote || "-")}</td>
+        <td><button type="button" onclick="decideEss('${esc(r.id)}','Completed'); setTimeout(() => showModule('staff-home'), 50)">Mark completed</button></td></tr>`).join("")
+      : '<tr><td colspan="4" class="table-empty">No approved requests waiting to be prepared.</td></tr>';
+  }
+
+  // =====================================================================
+  // HR OFFICER HOME: approvals center
+  // =====================================================================
+  async function renderOfficerHome() {
+    if (!$("officerKpis")) return;
+    const [apps, vacs] = await Promise.all([api("applications"), api("vacancies")]);
+    const claims = safeRead("claims").map((c, idx) => ({ ...c, idx })).filter((c) => (c.status || "Pending") === "Pending");
+    const overtime = safeRead("requests").map((r, idx) => ({ ...r, idx })).filter((r) => String(r.status || "Pending").toLowerCase().includes("pending"));
+    const ess = safeRead("essRequests").filter((r) => r.status === "Pending");
+    const decisions = (apps || []).filter((a) => !Number(a.archived) && a.status === "Interview");
+    const orders = (vacs || []).filter((v) => !Number(v.archived) && v.status === "Pending");
+    const onbReady = window.loadOnboardingRecords ? ((await window.loadOnboardingRecords()) || []).filter((r) => !r.archived && r.status !== "Completed" && r.done === r.total) : [];
+    let partnerReqs = [];
+    try { partnerReqs = (await apiRequest("hr-requests", { query: { status: "Pending" } })).records || []; } catch (e) { partnerReqs = []; }
+    const total = claims.length + overtime.length + ess.length + decisions.length + orders.length + onbReady.length + partnerReqs.length;
+
+    C.kpis($("officerKpis"), [
+      { label: "Waiting for your approval", value: total, tone: total ? "watch" : "good" },
+      { label: "Claims", value: claims.length, sub: peso(claims.reduce((t, c) => t + (Number(c.amount) || 0), 0)) },
+      { label: "Overtime", value: overtime.length, sub: overtime.reduce((t, r) => t + (Number(r.hours) || 0), 0) + " hour(s)" },
+      { label: "ESS requests", value: ess.length },
+      { label: "Hiring decisions", value: decisions.length, sub: "Applicants at Interview" },
+      { label: "Hire orders", value: orders.length, sub: "From HR3" },
+      { label: "HR requests", value: partnerReqs.length, sub: "From HR2 / HR3 / HR4" },
+      { label: "Onboarding", value: onbReady.length, sub: "Ready to approve" },
+    ]);
+    C.bars($("officerChart"), [
+      { label: "Claims", value: claims.length, tone: "watch" },
+      { label: "Overtime", value: overtime.length, tone: "alt" },
+      { label: "ESS requests", value: ess.length, tone: "main" },
+      { label: "Hiring decisions", value: decisions.length, tone: "good" },
+      { label: "Hire orders", value: orders.length, tone: "muted" },
+      { label: "Onboarding", value: onbReady.length, tone: "alt" },
+      { label: "HR requests", value: partnerReqs.length, tone: "watch" },
+    ], { empty: "Nothing is waiting for approval." });
+
+    const rows = [];
+    claims.forEach((c) => rows.push({ type: "Claim", who: c.name || c.id, what: `${peso(c.amount)}${c.receipt ? " · receipt attached" : ""}`, when: c.date || "-",
+      actions: `<button type="button" onclick="officerAct('claim',${c.idx},'Approved')">Approve</button> <button type="button" class="secondary-action" onclick="officerAct('claim',${c.idx},'Rejected')">Reject</button>` }));
+    overtime.forEach((r) => rows.push({ type: "Overtime", who: r.name || r.id, what: `${r.hours} hour(s)`, when: "-",
+      actions: `<button type="button" onclick="officerAct('overtime',${r.idx})">Approve</button>` }));
+    ess.forEach((r) => rows.push({ type: "ESS: " + r.type, who: r.name, what: r.details + (r.amount ? ` · ${peso(r.amount)}` : "") + (r.hours ? ` · ${r.hours} hr(s)` : ""), when: r.created,
+      actions: `<button type="button" onclick="officerAct('ess','${esc(r.id)}','Approved')">Approve</button> <button type="button" class="secondary-action" onclick="officerAct('ess','${esc(r.id)}','Rejected')">Reject</button>` }));
+    decisions.forEach((a) => rows.push({ type: "Hiring decision", who: a.name, what: `${a.vacancy || "-"} · ${window.appSource ? window.appSource(a) : ""}`, when: a.date || "-",
+      actions: `<button type="button" onclick="officerAct('hire','${esc(a.id)}','Hired')">Hire</button> <button type="button" class="secondary-action" onclick="officerAct('hire','${esc(a.id)}','Rejected')">Reject</button>` }));
+    orders.forEach((v) => rows.push({ type: "Hire order", who: v.requestedBy || v.source || "HR3", what: `${v.title} · ${v.slots} slot(s) · ${v.dept}`, when: v.received || "-",
+      actions: `<button type="button" onclick="officerAct('order','${esc(v.id)}','Open')">Publish</button> <button type="button" class="secondary-action" onclick="officerAct('order','${esc(v.id)}','Closed')">Decline</button>` }));
+
+    partnerReqs.forEach((r) => rows.push({ type: `HR request (${r.partner})`, who: r.employeeName || r.requestedBy || r.partner,
+      what: `${r.type}: ${r.title}${r.hours ? ` · ${r.hours} hr(s)` : ""}`, when: r.received || "-",
+      actions: `<button type="button" onclick="officerAct('partner',${Number(r.id)},'Approved')">Approve</button> <button type="button" class="secondary-action" onclick="officerAct('partner',${Number(r.id)},'Rejected')">Reject</button>` }));
+    onbReady.forEach((r) => rows.push({ type: "Onboarding", who: r.name, what: `${r.position || "-"} \u00B7 all ${r.total} items done`, when: r.startDate || r.created || "-",
+      actions: `<button type="button" onclick="officerAct('onboarding',${r.id})">Approve complete</button>` }));
+
+    const filter = $("officerFilter").value;
+    const shown = rows.filter((r) => filter === "All" || r.type.startsWith(filter));
+    $("officerQueue").innerHTML = shown.length ? shown.map((r) => `<tr>
+        <td><span class="activity-tag">${esc(r.type)}</span></td><td><strong>${esc(r.who)}</strong></td>
+        <td>${esc(r.what)}</td><td>${esc(r.when)}</td><td class="officer-actions">${r.actions}</td></tr>`).join("")
+      : '<tr><td colspan="5" class="table-empty">Nothing is waiting for approval. Good work.</td></tr>';
+  }
+  window.renderOfficerHome = renderOfficerHome;
+
+  window.officerAct = async function (kind, id, status) {
+    if (kind === "claim") updateClaimStatus(id, status);
+    if (kind === "overtime") approve(id);
+    if (kind === "partner") {
+      if (window.decidePartnerRequest) await window.decidePartnerRequest(id, status);
+      renderOfficerHome();
+      return;
+    }
+    if (kind === "ess") decideEss(id, status);
+    if (kind === "hire") {
+      if (!confirm(`Mark this applicant as ${status}?`)) return;
+      try { await apiRequest("applications", { method: "POST", body: JSON.stringify({ action: "status", id, status }) });
+        addNotification(`Applicant status changed to ${status}.${status === "Hired" ? " Super Admin can now provision the trainee account." : ""}`);
+      } catch (e) { toast(e.message || "Could not update the applicant."); }
+    }
+    if (kind === "order") await setVacancyStatus(id, status);
+    if (kind === "onboarding") await completeOnboarding(id);
+    setTimeout(renderOfficerHome, 150);
+  };
+
+  // Refresh open pages when the database copy of claims / ESS requests changes (hims-shared-sync.js).
+  window.addEventListener("hims-shared-updated", (e) => {
+    const visible = (id) => $(id) && $(id).style.display === "block";
+    if (e.detail.kind === "claims" && visible("claims") && typeof showClaims === "function") showClaims();
+    if (e.detail.kind === "essRequests" && visible("essadmin") && window.renderEss) window.renderEss();
+  });
+
+  // Refresh the home pages when another tab changes the shared lists.
+  window.addEventListener("storage", (e) => {
+    if (!["essRequests", "claims", "requests", "interviews", "attendance"].includes(e.key)) return;
+    const visible = (id) => $(id) && $(id).style.display === "block";
+    if (visible("staff-home")) renderStaffHome();
+    if (visible("officer-home")) renderOfficerHome();
+  });
+
+  // Apply once the dashboard is shown (also after login and page refresh).
+  const prevAuth = window.showAuthenticatedDashboard;
+  if (typeof prevAuth === "function") {
+    window.showAuthenticatedDashboard = function (u) { prevAuth(u); if (u && u.role !== "SUPER_ADMIN") applyRole(); };
+  }
+  window.addEventListener("load", () => {
+    const u = user();
+    if (u && document.getElementById("dashboard").style.display === "block" && u.role !== "SUPER_ADMIN") applyRole();
+  });
+})();
+
+</script>
+<script src="hims-file-exchange.js"></script>
+<script src="hims-hr-requests.js"></script>
+<script src="hims-polish.js"></script>
+</body>
+</html>

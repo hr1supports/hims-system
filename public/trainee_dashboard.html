@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HIMS | Trainee Portal</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body.trainee-page { min-height: 100vh; padding: 32px 18px; }
+    .trainee-shell { width: min(960px, 100%); margin: 0 auto; }
+    .trainee-header, .trainee-card { padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
+    .trainee-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+    .trainee-brand { display: flex; align-items: center; gap: 12px; }
+    .trainee-brand h1 { margin: 0; font-size: 1.4rem; }
+    .trainee-brand p, .trainee-card p { color: var(--muted); }
+    .trainee-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .trainee-card h2 { margin-top: 0; }
+    .training-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .training-details div { padding: 14px; border-radius: 12px; background: var(--panel-soft); }
+    .training-details span, .training-details strong { display: block; }
+    .training-details span { margin-bottom: 5px; color: var(--muted); font-size: .82rem; }
+    .trainee-announcement { padding: 12px 0; border-top: 1px solid var(--line); }
+    .trainee-announcement:first-child { border-top: 0; }
+    .trainee-announcement small { display: block; color: var(--muted); margin-top: 5px; }
+    #traineeError { color: #b91c1c; }
+    .onb-progress-bar { height: 10px; margin: 6px 0 14px; border-radius: 999px; background: rgba(120, 140, 135, 0.2); overflow: hidden; }
+    .onb-progress-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(135deg, #16b98a, #1fb8c4); }
+    .onb-steps { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .onb-steps li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--panel-soft); }
+    .onb-steps .mark { display: grid; place-items: center; flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); font-size: 0.75rem; font-weight: 800; }
+    .onb-steps li.done .mark { border-color: #0a9a65; background: #0a9a65; color: #fff; }
+    .onb-steps li.done span:last-child { color: var(--muted); }
+    .onboarding-card { margin-top: 18px; }
+    @media (max-width: 640px) {
+      .trainee-header { align-items: flex-start; flex-direction: column; }
+      .trainee-grid, .training-details { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="trainee-page">
+  <main class="trainee-shell">
+    <header class="trainee-header">
+      <div class="trainee-brand">
+        <div class="brand-mark">HIMS</div>
+        <div>
+          <h1>Trainee Portal</h1>
+          <p id="traineeWelcome">Loading your training information...</p>
+        </div>
+      </div>
+      <button id="traineeLogout" type="button">Log out</button>
+    </header>
+
+    <p id="traineeError" role="alert" hidden></p>
+    <div class="trainee-grid">
+      <section class="trainee-card">
+        <h2>My training</h2>
+        <div class="training-details">
+          <div><span>Program</span><strong id="trainingProgram">—</strong></div>
+          <div><span>Status</span><strong id="trainingStatus">—</strong></div>
+          <div><span>Start date</span><strong id="trainingStart">—</strong></div>
+          <div><span>Expected end date</span><strong id="trainingEnd">—</strong></div>
+        </div>
+        <p id="trainingNotes"></p>
+      </section>
+
+      <section class="trainee-card">
+        <h2>Announcements</h2>
+        <div id="traineeAnnouncements"><p>No announcements yet.</p></div>
+      </section>
+    </div>
+
+    <section class="trainee-card onboarding-card" id="onboardingCard" hidden>
+      <h2>My onboarding</h2>
+      <p id="onboardingSummary"></p>
+      <div class="onb-progress-bar"><i id="onboardingBar" style="width:0%"></i></div>
+      <ul class="onb-steps" id="onboardingSteps"></ul>
+      <p id="onboardingHint">Bring any missing documents to the HR office. HR ticks each item once it's received.</p>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const apiUrl = location.port === "5500"
+        ? `${location.protocol}//${location.hostname}:8000/backend/api.php`
+        : "backend/api.php";
+      const credentials = apiUrl.startsWith("http") ? "include" : "same-origin";
+      const errorBox = document.getElementById("traineeError");
+      const escape = (value) => String(value ?? "").replace(/[&<>'"]/g, (character) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
+      })[character]);
+
+      async function request(resource, options = {}) {
+        const response = await fetch(`${apiUrl}?resource=${encodeURIComponent(resource)}`, {
+          credentials,
+          headers: { "Content-Type": "application/json" },
+          ...options,
+        });
+        const text = await response.text();
+        let result;
+        try { result = text ? JSON.parse(text) : {}; } catch { throw new Error(`The API returned an invalid response (HTTP ${response.status}).`); }
+        if (!response.ok) throw new Error(result.error || `Request failed (HTTP ${response.status}).`);
+        return result;
+      }
+
+      function renderOnboarding(record) {
+        const card = document.getElementById("onboardingCard");
+        if (!record || !Array.isArray(record.items)) { card.hidden = true; return; }
+        const percent = Math.round((record.done / (record.total || 1)) * 100);
+        document.getElementById("onboardingSummary").textContent = record.status === "Completed"
+          ? `Onboarding complete. Approved by ${record.completedBy || "HR"}. Welcome to the team!`
+          : `${record.done} of ${record.total} steps done${record.startDate ? ` · start date ${record.startDate}` : ""}.`;
+        document.getElementById("onboardingBar").style.width = percent + "%";
+        document.getElementById("onboardingSteps").innerHTML = record.items.map((item) =>
+          `<li class="${item.done ? "done" : ""}"><span class="mark">${item.done ? "&#10003;" : ""}</span><span>${escape(item.label)}</span></li>`).join("");
+        document.getElementById("onboardingHint").hidden = record.status === "Completed";
+        card.hidden = false;
+      }
+
+      async function loadPortal() {
+        try {
+          const { user, training, announcements, onboarding } = await request("trainee-portal");
+          renderOnboarding(onboarding);
+          document.getElementById("traineeWelcome").textContent = `${user.name} · ${user.department || "Trainee"}`;
+          document.getElementById("trainingProgram").textContent = training.program;
+          document.getElementById("trainingStatus").textContent = training.status;
+          document.getElementById("trainingStart").textContent = training.startDate || "Not set";
+          document.getElementById("trainingEnd").textContent = training.expectedEndDate || "Not set";
+          document.getElementById("trainingNotes").textContent = training.notes || "Contact your supervisor if you have questions about your training.";
+          const list = document.getElementById("traineeAnnouncements");
+          list.innerHTML = announcements.length
+            ? announcements.map((item) => `<article class="trainee-announcement"><strong>${escape(item.title)}</strong><p>${escape(item.body || "")}</p><small>${escape(item.created)}${item.author ? ` · ${escape(item.author)}` : ""}</small></article>`).join("")
+            : "<p>No announcements yet.</p>";
+        } catch (error) {
+          if (/Authentication required|Trainee access required/i.test(error.message)) {
+            location.replace("index.html");
+            return;
+          }
+          errorBox.textContent = error.message;
+          errorBox.hidden = false;
+        }
+      }
+
+      document.getElementById("traineeLogout").addEventListener("click", async () => {
+        try {
+          await request("logout", { method: "POST", body: "{}" });
+        } finally {
+          location.replace("index.html");
+        }
+      });
+
+      loadPortal();
+    })();
+  </script>
+  <script src="hims-security.js"></script>
+</body>
+</html>
