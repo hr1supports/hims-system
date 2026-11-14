@@ -15,6 +15,10 @@ COPY --from=vendor --chown=www-data:www-data /app/vendor /var/www/html/vendor
 RUN mkdir -p storage/app/uploads/resumes storage/app/uploads/exchange storage/app/uploads/receipts \
       storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
  && chown -R www-data:www-data storage bootstrap/cache \
- && php artisan package:discover --ansi \
- && php artisan migrate --force
+ && php artisan package:discover --ansi
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 EXPOSE 80
+CMD ["entrypoint.sh"]
