@@ -505,3 +505,68 @@ CREATE TABLE IF NOT EXISTS trainee_training (
   UNIQUE KEY uq_trainee_training_user (user_id),
   CONSTRAINT fk_trainee_training_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+-- Batch 2: security. Select the target database before running.
+
+ALTER TABLE users
+  ADD COLUMN department VARCHAR(100) NULL AFTER role,
+  ADD COLUMN position VARCHAR(100) NULL AFTER department,
+  ADD COLUMN approval ENUM('approved', 'pending', 'rejected') NOT NULL DEFAULT 'approved' AFTER is_active;
+
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  kind ENUM('login', 'signup') NOT NULL DEFAULT 'login',
+  email VARCHAR(190) NOT NULL,
+  ip VARCHAR(45) NOT NULL,
+  success TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_attempts_email_ip (kind, email, ip, created_at),
+  KEY idx_attempts_ip (kind, ip, created_at)
+) ENGINE=InnoDB;
+-- Batch 5: Super Admin access and account audit history.
+-- Run after database/002_security.sql in the selected target database.
+
+ALTER TABLE users
+  MODIFY role ENUM('HR1', 'HR2', 'HR3', 'HR4', 'ADMIN', 'EMPLOYEE', 'TRAINEE', 'PATIENT', 'SUPER_ADMIN') NOT NULL DEFAULT 'EMPLOYEE';
+
+UPDATE users
+SET email = 'hr1superadmin@hospital.com'
+WHERE email = 'hr1superadmin@1234' AND role = 'SUPER_ADMIN';
+
+UPDATE users
+SET email = 'hr1admin@hospital.com'
+WHERE email = 'hr3@hotel.com' AND role IN ('HR3', 'ADMIN');
+
+INSERT INTO users (name, email, password_hash, role, department, position, is_active, approval)
+VALUES (
+  'HR1 Super Administrator',
+  'hr1superadmin@hospital.com',
+  '$2y$12$nJ.rf3lWdLw37.ooo.EIeu6xmz.Bt2yVoyCXlkvKAjrYZ8kEM6P1q',
+  'SUPER_ADMIN',
+  'System Administration',
+  'Super Administrator',
+  1,
+  'approved'
+)
+ON DUPLICATE KEY UPDATE
+  name = VALUES(name),
+  password_hash = VALUES(password_hash),
+  role = 'SUPER_ADMIN',
+  department = VALUES(department),
+  position = VALUES(position),
+  is_active = 1,
+  approval = 'approved';
+
+CREATE TABLE IF NOT EXISTS super_admin_audit (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  actor_id INT UNSIGNED NULL,
+  action VARCHAR(60) NOT NULL,
+  target_user_id INT UNSIGNED NULL,
+  details VARCHAR(500) NOT NULL,
+  ip_address VARCHAR(45) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_super_admin_audit_created (created_at),
+  KEY idx_super_admin_audit_target (target_user_id),
+  CONSTRAINT fk_super_admin_audit_actor FOREIGN KEY (actor_id) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB;
